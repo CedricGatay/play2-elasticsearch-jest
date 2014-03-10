@@ -8,6 +8,8 @@ import org.elasticsearch.node.NodeBuilder;
 import play.Application;
 import play.Logger;
 
+import java.net.URL;
+
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 public class IndexClient {
@@ -38,26 +40,7 @@ public class IndexClient {
             Logger.info("ElasticSearch : Started in Local Mode");
         } else {
             Logger.info("ElasticSearch : Starting in Client Mode");
-            TransportClient c = new TransportClient(settings);
-            if (config.client == null) {
-                throw new Exception("Configuration required - elasticsearch.client when local model is disabled!");
-            }
-
-            String[] hosts = config.client.trim().split(",");
-            boolean done = false;
-            for (String host : hosts) {
-                String[] parts = host.split(":");
-                if (parts.length != 2) {
-                    throw new Exception("Invalid Host: " + host);
-                }
-                Logger.info("ElasticSearch : Client - Host: " + parts[0] + " Port: " + parts[1]);
-                c.addTransportAddress(new InetSocketTransportAddress(parts[0], Integer.valueOf(parts[1])));
-                done = true;
-            }
-            if (!done) {
-                throw new Exception("No Hosts Provided for ElasticSearch!");
-            }
-            client = c;
+            client = configureTransportClient(settings);
             Logger.info("ElasticSearch : Started in Client Mode");
         }
 
@@ -65,6 +48,58 @@ public class IndexClient {
         if (client == null) {
             throw new Exception("ElasticSearch Client cannot be null - please check the configuration provided and the health of your ElasticSearch instances.");
         }
+    }
+
+
+    private TransportClient configureTransportClient(ImmutableSettings.Builder settings) throws Exception {
+        TransportClient c = new TransportClient(settings);
+        if (config.client == null) {
+            throw new Exception("Configuration required - elasticsearch.client when local model is disabled!");
+        }
+
+        String[] hosts = config.client.trim().split(",");
+        boolean done = false;
+        for (String host : hosts) {
+            //check if credential are contained in param
+            long time = System.currentTimeMillis();
+            try {
+                boolean protocolSetted = false;
+                //URL need a protocol
+                if(!host.contains("://")){
+                    //set default protocol
+                    host = "http://" + host;
+                    protocolSetted = true;
+                }
+
+                URL url = new URL(host);
+
+                String hostValue = url.getHost();
+                //adding credentials if exist
+                if (url.getUserInfo() != null) {
+                    hostValue = url.getUserInfo() + "@" + hostValue;
+                }
+
+                int port = url.getPort();
+                if (port == -1 && url.getProtocol().equals("http") && !protocolSetted) {
+                    port = 80;
+                }
+
+                if(port == -1){
+                    throw new Exception("Invalid Host: " + host);
+                }
+
+                Logger.info("ElasticSearch : Client - Host: " + hostValue + " Port: " + port);
+                c.addTransportAddress(new InetSocketTransportAddress(hostValue, port));
+                done = true;
+            } catch (Exception e) {
+                throw new Exception("Invalid Host: " + host);
+            }
+        }
+
+        if (!done) {
+            throw new Exception("No Hosts Provided for ElasticSearch!");
+        }
+        return c;
     }
 
     /**
@@ -99,7 +134,6 @@ public class IndexClient {
 
         // set default settings
         settings.put("client.transport.sniff", config.sniffing);
-        
         if (config.clusterName != null) {
             settings.put("cluster.name", config.clusterName);
         }
