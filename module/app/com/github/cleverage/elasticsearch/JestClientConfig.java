@@ -2,11 +2,17 @@ package com.github.cleverage.elasticsearch;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.searchbox.AbstractAction;
+import io.searchbox.AbstractMultiIndexActionBuilder;
+import io.searchbox.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.ClientConfig;
+import io.searchbox.client.JestResult;
 import io.searchbox.client.config.HttpClientConfig;
+import io.searchbox.core.Index;
+import io.searchbox.indices.Flush;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,5 +44,19 @@ public class JestClientConfig  {
         JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(clientConfig);
         return factory.getObject();
+    }
+
+    @Nullable
+    public static JestResult jestXcute(final Action action){
+        try {
+            return IndexClient.client.execute(action);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static JestResult jestXcute(AbstractMultiIndexActionBuilder builder) {
+        return jestXcute(builder.build());
     }
 }

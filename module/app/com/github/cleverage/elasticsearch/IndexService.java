@@ -1,6 +1,12 @@
 package com.github.cleverage.elasticsearch;
 
 import io.searchbox.client.JestResult;
+import io.searchbox.core.Delete;
+import io.searchbox.core.Percolate;
+import io.searchbox.indices.DeleteIndex;
+import io.searchbox.indices.Flush;
+import io.searchbox.indices.Refresh;
+import io.searchbox.indices.mapping.PutMapping;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -13,6 +19,8 @@ import org.elasticsearch.client.Requests;
 import org.elasticsearch.index.percolator.PercolatorService;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.indices.IndexMissingException;
 import play.Logger;
 import play.libs.F;
 
@@ -20,6 +28,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcute;
 
 
 public abstract class IndexService {
@@ -459,16 +469,14 @@ public abstract class IndexService {
      * }
      * }
      * }
-     *
-     * @param indexName
+     *  @param indexName
      * @param indexType
      * @param indexMapping
      */
-    public static PutMappingResponse createMapping(String indexName, String indexType, String indexMapping) {
-        return null;
-//        Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
-//        PutMappingResponse response = IndexClient.client.admin().indices().preparePutMapping(indexName).setType(indexType).setSource(indexMapping).execute().actionGet();
-//        return response;
+    public static JestResult createMapping(String indexName, String indexType, String indexMapping) {
+        Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
+        final PutMapping build = new PutMapping.Builder(indexName, indexType, indexMapping).build();
+        return jestXcute(build);
     }
 
     /**
@@ -541,7 +549,7 @@ public abstract class IndexService {
      * @param indexName
      */
     private static void refresh(String indexName) {
-//        IndexClient.client.admin().indices().refresh(new RefreshRequest(indexName)).actionGet();
+        jestXcute(new Refresh.Builder().addIndex(indexName).build());
     }
 
     /**
@@ -559,7 +567,7 @@ public abstract class IndexService {
      * @param indexName
      */
     public static void flush(String indexName) {
-//        IndexClient.client.admin().indices().flush(new FlushRequest(indexName)).actionGet();
+        jestXcute(new Flush.Builder().addIndex(indexName));
     }
 
     /**
@@ -571,24 +579,8 @@ public abstract class IndexService {
      * @throws IOException
      */
     public static JestResult createPercolator(String namePercolator, QueryBuilder queryBuilder) {
-//
-//        XContentBuilder source = null;
-//        try {
-//            source = jsonBuilder().startObject()
-//                    .field("query", queryBuilder)
-//                    .endObject();
-//        } catch (IOException e) {
-//            Logger.error("Elasticsearch : Erreur when create percolator from a queryBuilder", e);
-//        }
-//
-//        JestIndexRequestBuilder percolatorRequest =
-//                IndexClient.client.prepareIndex(INDEX_PERCOLATOR,
-//                        IndexService.INDEX_DEFAULT,
-//                        namePercolator)
-//                        .setSource(source);
-//
-//        return percolatorRequest.execute().actionGet();
-        return null;
+        //TODO check arguments > add name as id
+        return jestXcute(new Percolate.Builder(INDEX_PERCOLATOR, INDEX_DEFAULT, queryBuilder).build());
     }
 
     /**
@@ -600,14 +592,7 @@ public abstract class IndexService {
      * @throws IOException
      */
     public static JestResult createPercolator(String namePercolator, String query) {
-return null;
-//        JestIndexRequestBuilder percolatorRequest =
-//                IndexClient.client.prepareIndex(INDEX_PERCOLATOR,
-//                        IndexService.INDEX_DEFAULT,
-//                        namePercolator)
-//                        .setSource("{\"query\": " + query + "}");
-//
-//        return percolatorRequest.execute().actionGet();
+        return createPercolator(namePercolator, new QueryStringQueryBuilder(query));
     }
 
     /**
@@ -616,13 +601,12 @@ return null;
      * @return
      */
     public static boolean precolatorExists(String namePercolator) {
-//        try {
-//            JestResult responseExist = IndexService.getPercolator(namePercolator);
-//            return (responseExist.isExists());
-//        } catch (IndexMissingException e) {
-//            return false;
-//        }
-        return false;
+        try {
+            JestResult responseExist = IndexService.getPercolator(namePercolator);
+            return (responseExist.isSucceeded());
+        } catch (IndexMissingException e) {
+            return false;
+        }
     }
 
     /**
@@ -631,25 +615,24 @@ return null;
      * @param namePercolator
      * @return
      */
-    public static DeleteResponse deletePercolator(String namePercolator) {
-//        return delete(new IndexQueryPath(INDEX_PERCOLATOR, IndexService.INDEX_DEFAULT), namePercolator);
-        return null;
+    public static JestResult deletePercolator(String namePercolator) {
+        return delete(new IndexQueryPath(INDEX_PERCOLATOR, IndexService.INDEX_DEFAULT), namePercolator);
     }
 
     /**
      * Delete all percolators
      */
     public static void deletePercolators() {
-//        try {
-//            DeleteJestResult deleteJestResult = IndexClient.client.admin().indices().prepareDelete(INDEX_PERCOLATOR).execute().actionGet();
-//            if(!deleteJestResult.isAcknowledged()){
-//                throw new Exception(" no acknowledged");
-//            }
-//        } catch (IndexMissingException indexMissing) {
-//            Logger.debug("ElasticSearch : Index " + INDEX_PERCOLATOR + " no exists");
-//        } catch (Exception e) {
-//            Logger.error("ElasticSearch : Index drop error : " + e.toString());
-//        }
+        try {
+            final JestResult jestResult = jestXcute(new DeleteIndex.Builder(INDEX_PERCOLATOR).build());
+            if(!jestResult.isSucceeded()){
+                throw new Exception(" no acknowledged");
+            }
+        } catch (IndexMissingException indexMissing) {
+            Logger.debug("ElasticSearch : Index " + INDEX_PERCOLATOR + " no exists");
+        } catch (Exception e) {
+            Logger.error("ElasticSearch : Index drop error : " + e.toString());
+        }
     }
 
     /**
