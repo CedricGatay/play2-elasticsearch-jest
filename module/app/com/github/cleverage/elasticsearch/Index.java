@@ -63,7 +63,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public IndexResponse index() {
+    public io.searchbox.client.JestResult index() {
         return IndexService.index(getIndexPath(), id, this);
     }
 
@@ -72,7 +72,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public IndexResponse index(String indexName) {
+    public io.searchbox.client.JestResult index(String indexName) {
         return IndexService.index(getIndexPath(indexName), id, this);
     }
 
@@ -81,7 +81,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<IndexResponse> indexAsync() {
+    public F.Promise<io.searchbox.client.JestResult> indexAsync() {
         return IndexService.indexAsync(getIndexPath(), id, this);
     }
 
@@ -90,15 +90,15 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<IndexResponse> indexAsync(String indexName) {
+    public F.Promise<io.searchbox.client.JestResult> indexAsync(String indexName) {
         return IndexService.indexAsync(getIndexPath(indexName), id, this);
     }
 
-    public UpdateResponse update(Map<String,Object> updateFieldValues , String updateScript){
+    public io.searchbox.client.JestResult update(Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.update(getIndexPath(), id, updateFieldValues, updateScript);
     }
 
-    public UpdateResponse update(String indexName, Map<String,Object> updateFieldValues , String updateScript){
+    public io.searchbox.client.JestResult update(String indexName, Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.update(getIndexPath(indexName), id, updateFieldValues, updateScript);
     }
 
@@ -115,7 +115,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public DeleteResponse delete() {
+    public io.searchbox.client.JestResult delete() {
         return IndexService.delete(getIndexPath(), id);
     }
 
@@ -124,7 +124,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public DeleteResponse delete(String indexName) {
+    public io.searchbox.client.JestResult delete(String indexName) {
         return IndexService.delete(getIndexPath(indexName), id);
     }
 

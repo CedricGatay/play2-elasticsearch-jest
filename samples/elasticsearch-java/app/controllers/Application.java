@@ -45,7 +45,7 @@ public class Application extends Controller {
       IndexQuery<Team> queryCountry = Team.find.query();
       queryCountry.addFacet(FacetBuilders.termsFacet("countryF").field("country.name"));
       IndexResults<Team> allAndFacetCountry = Team.find.search(queryCountry);
-      TermsFacet countryF = allAndFacetCountry.facets.facet("countryF");
+      //TermsFacet countryF = allAndFacetCountry.facets.facet("countryF");
 
       // search All + facet players.position
       IndexQuery<Team> queryPlayers = Team.find.query();

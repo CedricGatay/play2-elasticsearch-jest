@@ -36,7 +36,7 @@ public class Global extends GlobalSettings {
         barcelone.name = "FC Barcelone";
         barcelone.country = espagne;
         barcelone.level = "Ligua";
-        barcelone.dateCreate = new Date();
+        //barcelone.dateCreate = new Date();
         loadPlayersBarcelone(barcelone);
         barcelone.index();
 
@@ -45,7 +45,7 @@ public class Global extends GlobalSettings {
         madrid.name = "Real Madrid";
         madrid.country = espagne;
         madrid.level = "Ligua";
-        madrid.dateCreate = new Date();
+        //madrid.dateCreate = new Date();
         loadPlayersMadrid(madrid);
         madrid.index();
 
@@ -54,7 +54,7 @@ public class Global extends GlobalSettings {
         ol.name = "Olympique Lyonnais";
         ol.country = france;
         ol.level = "Ligue 1";
-        ol.dateCreate = new Date();
+        //ol.dateCreate = new Date();
         ol.index();
     }
 

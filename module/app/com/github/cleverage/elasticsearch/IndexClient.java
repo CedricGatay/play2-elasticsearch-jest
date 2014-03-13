@@ -1,5 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
+import io.searchbox.client.JestClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.SettingsException;
@@ -16,7 +17,7 @@ public class IndexClient {
 
     public static org.elasticsearch.node.Node node = null;
 
-    public static org.elasticsearch.client.Client client = null;
+    public static JestClient client = null;
 
     public static IndexConfig config;
 
@@ -30,19 +31,7 @@ public class IndexClient {
         // Load Elasticsearch Settings
         ImmutableSettings.Builder settings = loadSettings();
 
-        // Check Model
-        if (this.isLocalMode()) {
-            Logger.info("ElasticSearch : Starting in Local Mode");
-
-            NodeBuilder nb = nodeBuilder().settings(settings).local(true).client(false).data(true);
-            node = nb.node();
-            client = node.client();
-            Logger.info("ElasticSearch : Started in Local Mode");
-        } else {
-            Logger.info("ElasticSearch : Starting in Client Mode");
-            client = configureTransportClient(settings);
-            Logger.info("ElasticSearch : Started in Client Mode");
-        }
+        client = JestClientConfig.jestClient();
 
         // Check Client
         if (client == null) {
@@ -155,7 +144,7 @@ public class IndexClient {
 
     public void stop() throws Exception {
         if (client != null) {
-            client.close();
+            client.shutdownClient();
         }
         if (node != null) {
             node.close();

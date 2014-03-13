@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   javaCore,
   // Add your project dependencies here
   "org.elasticsearch" % "elasticsearch" % "0.90.12",
+  "io.searchbox" % "jest" % "0.1.0",
   "org.apache.commons" % "commons-lang3" % "3.1"
 )
 

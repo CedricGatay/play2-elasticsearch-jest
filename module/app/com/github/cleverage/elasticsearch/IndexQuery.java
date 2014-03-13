@@ -1,9 +1,13 @@
 package com.github.cleverage.elasticsearch;
 
+import com.google.gson.JsonObject;
+import io.searchbox.client.JestResult;
+import io.searchbox.core.search.facet.Facet;
+import io.searchbox.core.search.facet.GeoDistanceFacet;
+import io.searchbox.core.search.facet.QueryFacet;
+import io.searchbox.core.search.facet.TermsFacet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.elasticsearch.action.ActionListener;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -17,8 +21,6 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import play.Logger;
 import play.libs.F;
-import scala.concurrent.Future;
-import scala.concurrent.Promise;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -164,7 +166,7 @@ public class IndexQuery<T extends Index> {
      */
     public IndexResults<T> fetch(IndexQueryPath indexQueryPath, FilterBuilder filter) {
 
-        SearchRequestBuilder request = getSearchRequestBuilder(indexQueryPath, filter);
+        JestSearchRequestBuilder request = getSearchRequestBuilder(indexQueryPath, filter);
 
         return executeSearchRequest(request);
     }
@@ -184,21 +186,24 @@ public class IndexQuery<T extends Index> {
      * @param filter
      * @return
      */
-    public F.Promise<IndexResults<T>> fetchAsync(IndexQueryPath indexQueryPath, FilterBuilder filter) {
-        SearchRequestBuilder request = getSearchRequestBuilder(indexQueryPath, filter);
-        F.Promise<SearchResponse> searchResponsePromise = AsyncUtils.executeAsyncJava(request);
-        return searchResponsePromise.map(new F.Function<SearchResponse, IndexResults<T>>() {
-            @Override
-            public IndexResults<T> apply(SearchResponse searchResponse) throws Throwable {
-                return toSearchResults(searchResponse);
-            }
-        });
+    public F.Promise<IndexResults<T>> fetchAsync(final IndexQueryPath indexQueryPath, final FilterBuilder filter) {
+        return null;//F.Promise.wrap(AsyncUtils.createPromise().success(fetch(indexQueryPath, filter)).future());
+            
+        
+//        JestSearchRequestBuilder request = getSearchRequestBuilder(indexQueryPath, filter);
+//        F.Promise<SearchResponse> searchResponsePromise = AsyncUtils.executeAsyncJava(request);
+//        return searchResponsePromise.map(new F.Function<SearchResponse, IndexResults<T>>() {
+//            @Override
+//            public IndexResults<T> apply(SearchResponse searchResponse) throws Throwable {
+//                return toSearchResults(searchResponse);
+//            }
+//        });
 
     }
 
-    public IndexResults<T> executeSearchRequest(SearchRequestBuilder request) {
+    public IndexResults<T> executeSearchRequest(JestSearchRequestBuilder request) {
 
-        SearchResponse searchResponse = request.execute().actionGet();
+        JestResult searchResponse = request.jestXcute();
 
         if (IndexClient.config.showRequest) {
             Logger.debug("ElasticSearch : Response -> " + searchResponse.toString());
@@ -209,15 +214,15 @@ public class IndexQuery<T extends Index> {
         return searchResults;
     }
 
-    public SearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath){
+    public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath){
         return getSearchRequestBuilder(indexQueryPath, null);
     }
 
-    public SearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath, FilterBuilder filter) {
+    public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath, FilterBuilder filter) {
 
         // Build request
-        SearchRequestBuilder request = IndexClient.client
-                .prepareSearch(indexQueryPath.index)
+            JestSearchRequestBuilder request = (JestSearchRequestBuilder) new JestSearchRequestBuilder()
+                .setIndices(indexQueryPath.index)
                 .setTypes(indexQueryPath.type)
                 .setSearchType(SearchType.QUERY_THEN_FETCH)
                 .setFilter(filter);
@@ -271,41 +276,47 @@ public class IndexQuery<T extends Index> {
         return request;
     }
 
-    private IndexResults<T> toSearchResults(SearchResponse searchResponse) {
-        // Get Total Records Found
-        long count = searchResponse.getHits().totalHits();
-
-        // Get Facets
-        Facets facetsResponse = searchResponse.getFacets();
-
-        // Get List results
-        List<T> results = new ArrayList<T>();
-
-        // Loop on each one
-        for (SearchHit h : searchResponse.getHits()) {
-
-            // Get Data Map
-            Map<String, Object> map = h.sourceAsMap();
-
-            // Create a new Indexable Object for the return
-            T objectIndexable = IndexUtils.getInstanceIndex(clazz);
-            T t = (T) objectIndexable.fromIndex(map);
-            t.id = h.getId();
-            t.searchHit = h;
-
-            results.add(t);
-        }
-
-        if(Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Results -> "+ results.toString());
-        }
-
+    private IndexResults<T> toSearchResults(JestResult searchResponse) {
+        Logger.info(">> To search Results " + searchResponse.getJsonString());
+        final JsonObject jsonObject = searchResponse.getJsonObject();
+        Logger.info(">> sourceAsObject" + jsonObject);
+//        // Get Total Records Found
+        long count = jsonObject.get("hits").getAsJsonObject().get("total").getAsInt();
+//
+//        // Get Facets
+        List<Facet> facetsResponse = new ArrayList<Facet>();
+        facetsResponse.addAll(searchResponse.getFacets(TermsFacet.class));
+        facetsResponse.addAll(searchResponse.getFacets(QueryFacet.class));
+        facetsResponse.addAll(searchResponse.getFacets(GeoDistanceFacet.class));
+//
+//        // Get List results
+        List<T> results = searchResponse.getSourceAsObjectList(clazz);
+//
+////        // Loop on each one
+//        for (T h : ) {
+//
+//            // Get Data Map
+//            Map<String, Object> map = h.sourceAsMap();
+//
+//            // Create a new Indexable Object for the return
+//            T objectIndexable = IndexUtils.getInstanceIndex(clazz);
+//            T t = (T) objectIndexable.fromIndex(map);
+//            t.id = h.id;
+//            t.searchHit = h.searchHit;
+//
+//            results.add(t);
+//        }
+//
+//        if(Logger.isDebugEnabled()) {
+//            Logger.debug("ElasticSearch : Results -> "+ results.toString());
+//        }
+//
         // pagination
         long pageSize = 10;
         if (size > -1) {
             pageSize = size;
         }
-
+//
         long pageCurrent = 1;
         if(from > 0) {
             pageCurrent = ((int) (from / pageSize))+1;

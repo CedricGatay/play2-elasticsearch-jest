@@ -1,35 +1,18 @@
 package com.github.cleverage.elasticsearch;
 
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.admin.indices.flush.FlushRequest;
+import io.searchbox.client.JestResult;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.percolate.PercolateRequestBuilder;
-import org.elasticsearch.action.percolate.PercolateResponse;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.AdminClient;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.Requests;
-import org.elasticsearch.cluster.ClusterState;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.percolator.PercolatorService;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.indices.IndexMissingException;
 import play.Logger;
 import play.libs.F;
 
@@ -37,8 +20,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 
 public abstract class IndexService {
@@ -51,8 +32,8 @@ public abstract class IndexService {
      *
      * @return
      */
-    public static IndexRequestBuilder getIndexRequest(IndexQueryPath indexPath, String id, Index indexable) {
-        return new IndexRequestBuilder(IndexClient.client, indexPath.index)
+    public static JestIndexRequestBuilder getIndexRequest(IndexQueryPath indexPath, String id, Index indexable) {
+        return (JestIndexRequestBuilder) new JestIndexRequestBuilder(indexPath.index)
                 .setType(indexPath.type)
                 .setId(id)
                 .setSource(indexable.toIndex());
@@ -64,26 +45,25 @@ public abstract class IndexService {
      * @param requestBuilder
      * @return
      */
-    public static IndexResponse index(IndexRequestBuilder requestBuilder) {
+    public static JestResult index(JestIndexRequestBuilder requestBuilder) {
 
-        IndexResponse indexResponse = requestBuilder.execute().actionGet();
+        JestResult jestResult = requestBuilder.jestXcute();
 
         if (Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Index " + requestBuilder.toString());
+            Logger.debug("ElasticSearch : Index " + jestResult.getJsonString());
         }
-        return indexResponse;
+        return jestResult;
     }
 
     /**
-     * Create an IndexRequestBuilder
+     * Create an JestIndexRequestBuilder
      * @param indexPath
      * @param id
      * @param indexable
      * @return
      */
-    private static IndexRequestBuilder getIndexRequestBuilder(IndexQueryPath indexPath, String id, Index indexable) {
-        return IndexClient.client.prepareIndex(indexPath.index, indexPath.type, id)
-                .setSource(indexable.toIndex());
+    private static JestIndexRequestBuilder getJestIndexRequestBuilder(IndexQueryPath indexPath, String id, Index indexable) {
+        return getIndexRequest(indexPath, id, indexable);
     }
 
     /**
@@ -93,14 +73,12 @@ public abstract class IndexService {
      * @param indexable
      * @return
      */
-    public static IndexResponse index(IndexQueryPath indexPath, String id, Index indexable) {
-        IndexResponse indexResponse = getIndexRequestBuilder(indexPath, id, indexable)
-                .execute()
-                .actionGet();
+    public static JestResult index(IndexQueryPath indexPath, String id, Index indexable) {
+        JestResult jestResult = getJestIndexRequestBuilder(indexPath, id, indexable).jestXcute();
         if (Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Index : " + indexResponse.getIndex() + "/" + indexResponse.getType() + "/" + indexResponse.getId() + " from " + indexable.toString());
+            Logger.debug("ElasticSearch : Index : " + jestResult.getJsonString());
         }
-        return indexResponse;
+        return jestResult;
     }
 
     /**
@@ -110,17 +88,17 @@ public abstract class IndexService {
      * @param indexable
      * @return
      */
-    public static F.Promise<IndexResponse> indexAsync(IndexQueryPath indexPath, String id, Index indexable) {
-        return indexAsync(getIndexRequestBuilder(indexPath, id, indexable));
+    public static F.Promise<JestResult> indexAsync(IndexQueryPath indexPath, String id, Index indexable) {
+        return indexAsync(getJestIndexRequestBuilder(indexPath, id, indexable));
     }
 
     /**
-     * call IndexRequestBuilder on asynchronously
-     * @param indexRequestBuilder
+     * call JestIndexRequestBuilder on asynchronously
+     * @param jestIndexRequestBuilder
      * @return
      */
-    public static F.Promise<IndexResponse> indexAsync(IndexRequestBuilder indexRequestBuilder) {
-        return AsyncUtils.executeAsyncJava(indexRequestBuilder);
+    public static F.Promise<JestResult> indexAsync(JestIndexRequestBuilder jestIndexRequestBuilder) {
+        return null;//F.Promise.wrap(AsyncUtils.createPromise().success(jestIndexRequestBuilder.jestXcute()).future());
     }
 
     /**
@@ -130,19 +108,22 @@ public abstract class IndexService {
      * @param json
      * @return
      */
-    public static IndexResponse index(IndexQueryPath indexPath, String id, String json) {
-        return getIndexRequestBuilder(indexPath, id, json).execute().actionGet();
+    public static JestResult index(IndexQueryPath indexPath, String id, String json) {
+        return getJestIndexRequestBuilder(indexPath, id, json).jestXcute();
     }
 
     /**
-     * Create an IndexRequestBuilder for a Json-encoded object
+     * Create an JestIndexRequestBuilder for a Json-encoded object
      * @param indexPath
      * @param id
      * @param json
      * @return
      */
-    public static IndexRequestBuilder getIndexRequestBuilder(IndexQueryPath indexPath, String id, String json) {
-        return IndexClient.client.prepareIndex(indexPath.index, indexPath.type, id).setSource(json);
+    public static JestIndexRequestBuilder getJestIndexRequestBuilder(IndexQueryPath indexPath, String id, String json) {
+        return (JestIndexRequestBuilder) new JestIndexRequestBuilder(indexPath.index)
+                .setType(indexPath.type)
+                .setId(id)
+                .setSource(json);
     }
 
     /**
@@ -151,15 +132,12 @@ public abstract class IndexService {
      * @param indexables
      * @return
      */
-    private static BulkRequestBuilder getBulkRequestBuilder(IndexQueryPath indexPath, List<? extends Index> indexables) {
-        BulkRequestBuilder bulkRequestBuilder = IndexClient.client.prepareBulk();
+    private static JestBulkRequestBuilder getBulkRequestBuilder(IndexQueryPath indexPath, List<? extends Index> indexables) {
+        final JestBulkRequestBuilder jestBulkRequestBuilder = new JestBulkRequestBuilder();
         for (Index indexable : indexables) {
-            bulkRequestBuilder.add(Requests.indexRequest(indexPath.index)
-                    .type(indexPath.type)
-                    .id(indexable.id)
-                    .source(indexable.toIndex()));
+            jestBulkRequestBuilder.add(getJestIndexRequestBuilder(indexPath, indexable.id, indexable).getAction());
         }
-        return bulkRequestBuilder;
+        return jestBulkRequestBuilder;
     }
 
     /**
@@ -168,9 +146,9 @@ public abstract class IndexService {
      * @param indexables
      * @return
      */
-    public static BulkResponse indexBulk(IndexQueryPath indexPath, List<? extends Index> indexables) {
-        BulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, indexables);
-        return bulkRequestBuilder.execute().actionGet();
+    public static JestResult indexBulk(IndexQueryPath indexPath, List<? extends Index> indexables) {
+        JestBulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, indexables);
+        return bulkRequestBuilder.jestXcute();
     }
 
     /**
@@ -179,8 +157,9 @@ public abstract class IndexService {
      * @param indexables
      * @return
      */
-    public static F.Promise<BulkResponse> indexBulkAsync(IndexQueryPath indexPath, List<? extends Index> indexables) {
-        return AsyncUtils.executeAsyncJava(getBulkRequestBuilder(indexPath, indexables));
+    public static F.Promise<JestResult> indexBulkAsync(IndexQueryPath indexPath, List<? extends Index> indexables) {
+//        return AsyncUtils.executeAsyncJava(getBulkRequestBuilder(indexPath, indexables));
+        return null;
     }
 
     /**
@@ -189,10 +168,10 @@ public abstract class IndexService {
      * @param jsonMap
      * @return
      */
-    public static BulkRequestBuilder getBulkRequestBuilder(IndexQueryPath indexPath, Map<String, String> jsonMap) {
-        BulkRequestBuilder bulkRequestBuilder = IndexClient.client.prepareBulk();
+    public static JestBulkRequestBuilder getBulkRequestBuilder(IndexQueryPath indexPath, Map<String, String> jsonMap) {
+        JestBulkRequestBuilder bulkRequestBuilder = new JestBulkRequestBuilder();
         for (String id : jsonMap.keySet()) {
-            bulkRequestBuilder.add(Requests.indexRequest(indexPath.index).type(indexPath.type).id(id).source(jsonMap.get(id)));
+            bulkRequestBuilder.add(getJestIndexRequestBuilder(indexPath, id, jsonMap.get(id)));
         }
         return bulkRequestBuilder;
     }
@@ -203,16 +182,17 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<BulkResponse> indexBulkAsync(BulkRequestBuilder bulkRequestBuilder) {
-        return AsyncUtils.executeAsyncJava(bulkRequestBuilder);
+//        return AsyncUtils.executeAsyncJava(bulkRequestBuilder);
+        return null;
     }
 
     /**
-     * Create a BulkRequestBuilder for a List of IndexRequestBuilder
+     * Create a BulkRequestBuilder for a List of JestIndexRequestBuilder
      * @return
      */
-    public static BulkRequestBuilder getBulkRequestBuilder(Collection<IndexRequestBuilder> indexRequestBuilder) {
-        BulkRequestBuilder bulkRequestBuilder = IndexClient.client.prepareBulk();
-        for (IndexRequestBuilder requestBuilder : indexRequestBuilder) {
+    public static JestBulkRequestBuilder getBulkRequestBuilder(Collection<JestIndexRequestBuilder> JestIndexRequestBuilder) {
+        JestBulkRequestBuilder bulkRequestBuilder = new JestBulkRequestBuilder();
+        for (JestIndexRequestBuilder requestBuilder : JestIndexRequestBuilder) {
             bulkRequestBuilder.add(requestBuilder);
         }
         return bulkRequestBuilder;
@@ -225,9 +205,9 @@ public abstract class IndexService {
      * @param jsonMap
      * @return
      */
-    public static BulkResponse indexBulk(IndexQueryPath indexPath, Map<String, String> jsonMap) {
-        BulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, jsonMap);
-        return bulkRequestBuilder.execute().actionGet();
+    public static JestResult indexBulk(IndexQueryPath indexPath, Map<String, String> jsonMap) {
+        JestBulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, jsonMap);
+        return bulkRequestBuilder.jestXcute();
     }
 
     /**
@@ -236,13 +216,11 @@ public abstract class IndexService {
      * @param id
      * @return
      */
-    public static UpdateRequestBuilder getUpdateRequestBuilder(IndexQueryPath indexPath,
-                                                               String id,
-                                                               Map<String, Object> updateFieldValues,
-                                                               String updateScript) {
-        return IndexClient.client.prepareUpdate(indexPath.index, indexPath.type, id)
-                .setScriptParams(updateFieldValues)
-                .setScript(updateScript);
+    public static JestUpdateRequestBuilder getUpdateRequestBuilder(IndexQueryPath indexPath,
+                                                                   String id,
+                                                                   Map<String, Object> updateFieldValues,
+                                                                   String updateScript) {
+        return new JestUpdateRequestBuilder(indexPath.index, indexPath.type, id).setScriptParams(updateFieldValues).setScript(updateScript);
     }
 
     /**
@@ -253,13 +231,12 @@ public abstract class IndexService {
      * @param updateScript
      * @return
      */
-    public static UpdateResponse update(IndexQueryPath indexPath,
-                                        String id,
-                                        Map<String, Object> updateFieldValues,
-                                        String updateScript) {
+    public static JestResult update(IndexQueryPath indexPath,
+                                    String id,
+                                    Map<String, Object> updateFieldValues,
+                                    String updateScript) {
         return getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript)
-                .execute()
-                .actionGet();
+                .jestXcute();
     }
 
     /**
@@ -274,7 +251,8 @@ public abstract class IndexService {
                                                         String id,
                                                         Map<String, Object> updateFieldValues,
                                                         String updateScript) {
-        return updateAsync(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript));
+//        return updateAsync(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript));
+        return null;
     }
 
     /**
@@ -292,8 +270,8 @@ public abstract class IndexService {
      * @param id
      * @return
      */
-    public static DeleteRequestBuilder getDeleteRequestBuilder(IndexQueryPath indexPath, String id) {
-        return IndexClient.client.prepareDelete(indexPath.index, indexPath.type, id);
+    public static JestDeleteRequestBuilder getDeleteRequestBuilder(IndexQueryPath indexPath, String id) {
+        return new JestDeleteRequestBuilder(indexPath.index, indexPath.type, id);
     }
 
     /**
@@ -302,7 +280,8 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<DeleteResponse> deleteAsync(IndexQueryPath indexPath, String id) {
-        return AsyncUtils.executeAsyncJava(getDeleteRequestBuilder(indexPath, id));
+//        return AsyncUtils.executeAsyncJava(getDeleteRequestBuilder(indexPath, id));
+        return null;
     }
 
     /**
@@ -310,10 +289,9 @@ public abstract class IndexService {
      * @param indexPath
      * @return
      */
-    public static DeleteResponse delete(IndexQueryPath indexPath, String id) {
-        DeleteResponse deleteResponse = getDeleteRequestBuilder(indexPath, id)
-                .execute()
-                .actionGet();
+    public static JestResult delete(IndexQueryPath indexPath, String id) {
+        JestResult deleteResponse = getDeleteRequestBuilder(indexPath, id)
+                .jestXcute();
 
         if (Logger.isDebugEnabled()) {
             Logger.debug("ElasticSearch : Delete " + deleteResponse.toString());
@@ -328,8 +306,8 @@ public abstract class IndexService {
      * @param id
      * @return
      */
-    public static GetRequestBuilder getGetRequestBuilder(IndexQueryPath indexPath, String id) {
-        return IndexClient.client.prepareGet(indexPath.index, indexPath.type, id);
+    public static JestGetRequestBuilder getGetRequestBuilder(IndexQueryPath indexPath, String id) {
+        return new JestGetRequestBuilder(indexPath.index, indexPath.type, id);
     }
 
     /**
@@ -340,9 +318,7 @@ public abstract class IndexService {
      */
     public static String getAsString(IndexQueryPath indexPath, String id) {
         return getGetRequestBuilder(indexPath, id)
-                .execute()
-                .actionGet()
-                .getSourceAsString();
+                .jestXcute().getJsonString();
     }
 
     private static <T extends Index> T getTFromGetResponse(Class<T> clazz, GetResponse getResponse) {
@@ -367,9 +343,8 @@ public abstract class IndexService {
      * @return
      */
     public static <T extends Index> T get(IndexQueryPath indexPath, Class<T> clazz, String id) {
-        GetRequestBuilder getRequestBuilder = getGetRequestBuilder(indexPath, id);
-        GetResponse getResponse = getRequestBuilder.execute().actionGet();
-        return getTFromGetResponse(clazz, getResponse);
+        JestGetRequestBuilder getRequestBuilder = getGetRequestBuilder(indexPath, id);
+        return getRequestBuilder.jestXcute().getSourceAsObject(clazz);
     }
 
     /**
@@ -381,14 +356,15 @@ public abstract class IndexService {
      * @return
      */
     public static <T extends Index> F.Promise<T> getAsync(IndexQueryPath indexPath, final Class<T> clazz, String id) {
-        F.Promise<GetResponse> responsePromise = AsyncUtils.executeAsyncJava(getGetRequestBuilder(indexPath, id));
-        return responsePromise.map(
-            new F.Function<GetResponse, T>() {
-                public T apply(GetResponse getResponse) {
-                    return getTFromGetResponse(clazz, getResponse);
-                }
-            }
-        );
+//        F.Promise<GetResponse> responsePromise = AsyncUtils.executeAsyncJava(getGetRequestBuilder(indexPath, id));
+//        return responsePromise.map(
+//            new F.Function<GetResponse, T>() {
+//                public T apply(GetResponse getResponse) {
+//                    return getTFromGetResponse(clazz, getResponse);
+//                }
+//            }
+//        );
+        return null;
     }
 
     /**
@@ -398,11 +374,8 @@ public abstract class IndexService {
      * @param id
      * @return
      */
-    public static GetResponse get(String indexName, String indexType, String id) {
-
-        GetRequestBuilder getRequestBuilder = IndexClient.client.prepareGet(indexName, indexType, id);
-        GetResponse getResponse = getRequestBuilder.execute().actionGet();
-        return getResponse;
+    public static JestResult get(String indexName, String indexType, String id) {
+        return new JestGetRequestBuilder(indexName, indexType, id).jestXcute();
     }
 
     /**
@@ -434,44 +407,45 @@ public abstract class IndexService {
      */
     public static boolean existsIndex(String indexName) {
 
-        Client client = IndexClient.client;
-        AdminClient admin = client.admin();
-        IndicesAdminClient indices = admin.indices();
-        IndicesExistsRequestBuilder indicesExistsRequestBuilder = indices.prepareExists(indexName);
-        IndicesExistsResponse response = indicesExistsRequestBuilder.execute().actionGet();
-
-        return response.isExists();
+//        Client client = IndexClient.client;
+//        AdminClient admin = client.admin();
+//        IndicesAdminClient indices = admin.indices();
+//        IndicesExistsRequestBuilder indicesExistsRequestBuilder = indices.prepareExists(indexName);
+//        IndicesExistsResponse response = indicesExistsRequestBuilder.execute().actionGet();
+//
+//        return response.isExists();
+        return false;
     }
 
     /**
      * Create the index
      */
     public static void createIndex(String indexName) {
-        Logger.debug("ElasticSearch : creating index [" + indexName + "]");
-        try {
-            CreateIndexRequestBuilder creator = IndexClient.client.admin().indices().prepareCreate(indexName);
-            String setting = IndexClient.config.indexSettings.get(indexName);
-            if (setting != null) {
-                creator.setSettings(setting);
-            }
-            creator.execute().actionGet();
-        } catch (Exception e) {
-            Logger.error("ElasticSearch : Index create error : " + e.toString());
-        }
+//        Logger.debug("ElasticSearch : creating index [" + indexName + "]");
+//        try {
+//            CreateJestIndexRequestBuilder creator = IndexClient.client.admin().indices().prepareCreate(indexName);
+//            String setting = IndexClient.config.indexSettings.get(indexName);
+//            if (setting != null) {
+//                creator.setSettings(setting);
+//            }
+//            creator.execute().actionGet();
+//        } catch (Exception e) {
+//            Logger.error("ElasticSearch : Index create error : " + e.toString());
+//        }
     }
 
     /**
      * Delete the index
      */
     public static void deleteIndex(String indexName) {
-        Logger.debug("ElasticSearch : deleting index [" + indexName + "]");
-        try {
-            IndexClient.client.admin().indices().prepareDelete(indexName).execute().actionGet();
-        } catch (IndexMissingException indexMissing) {
-            Logger.debug("ElasticSearch : Index " + indexName + " no exists");
-        } catch (Exception e) {
-            Logger.error("ElasticSearch : Index drop error : " + e.toString());
-        }
+//        Logger.debug("ElasticSearch : deleting index [" + indexName + "]");
+//        try {
+//            IndexClient.client.admin().indices().prepareDelete(indexName).execute().actionGet();
+//        } catch (IndexMissingException indexMissing) {
+//            Logger.debug("ElasticSearch : Index " + indexName + " no exists");
+//        } catch (Exception e) {
+//            Logger.error("ElasticSearch : Index drop error : " + e.toString());
+//        }
     }
 
     /**
@@ -491,9 +465,10 @@ public abstract class IndexService {
      * @param indexMapping
      */
     public static PutMappingResponse createMapping(String indexName, String indexType, String indexMapping) {
-        Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
-        PutMappingResponse response = IndexClient.client.admin().indices().preparePutMapping(indexName).setType(indexType).setSource(indexMapping).execute().actionGet();
-        return response;
+        return null;
+//        Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
+//        PutMappingResponse response = IndexClient.client.admin().indices().preparePutMapping(indexName).setType(indexType).setSource(indexMapping).execute().actionGet();
+//        return response;
     }
 
     /**
@@ -502,16 +477,17 @@ public abstract class IndexService {
      * @return
      */
     public static String getMapping(String indexName, String indexType) {
-        ClusterState state = IndexClient.client.admin().cluster()
-                .prepareState()
-                .setFilterIndices(IndexService.INDEX_DEFAULT)
-                .execute().actionGet().getState();
-        MappingMetaData mappingMetaData = state.getMetaData().index(indexName).mapping(indexType);
-        if (mappingMetaData != null) {
-            return mappingMetaData.source().toString();
-        } else {
-            return null;
-        }
+        return null;
+//        ClusterState state = IndexClient.client.admin().cluster()
+//                .prepareState()
+//                .setFilterIndices(IndexService.INDEX_DEFAULT)
+//                .execute().actionGet().getState();
+//        MappingMetaData mappingMetaData = state.getMetaData().index(indexName).mapping(indexType);
+//        if (mappingMetaData != null) {
+//            return mappingMetaData.source().toString();
+//        } else {
+//            return null;
+//        }
     }
 
     /**
@@ -565,7 +541,7 @@ public abstract class IndexService {
      * @param indexName
      */
     private static void refresh(String indexName) {
-        IndexClient.client.admin().indices().refresh(new RefreshRequest(indexName)).actionGet();
+//        IndexClient.client.admin().indices().refresh(new RefreshRequest(indexName)).actionGet();
     }
 
     /**
@@ -583,7 +559,7 @@ public abstract class IndexService {
      * @param indexName
      */
     public static void flush(String indexName) {
-        IndexClient.client.admin().indices().flush(new FlushRequest(indexName)).actionGet();
+//        IndexClient.client.admin().indices().flush(new FlushRequest(indexName)).actionGet();
     }
 
     /**
@@ -594,24 +570,25 @@ public abstract class IndexService {
      * @return
      * @throws IOException
      */
-    public static IndexResponse createPercolator(String namePercolator, QueryBuilder queryBuilder) {
-
-        XContentBuilder source = null;
-        try {
-            source = jsonBuilder().startObject()
-                    .field("query", queryBuilder)
-                    .endObject();
-        } catch (IOException e) {
-            Logger.error("Elasticsearch : Erreur when create percolator from a queryBuilder", e);
-        }
-
-        IndexRequestBuilder percolatorRequest =
-                IndexClient.client.prepareIndex(INDEX_PERCOLATOR,
-                        IndexService.INDEX_DEFAULT,
-                        namePercolator)
-                        .setSource(source);
-
-        return percolatorRequest.execute().actionGet();
+    public static JestResult createPercolator(String namePercolator, QueryBuilder queryBuilder) {
+//
+//        XContentBuilder source = null;
+//        try {
+//            source = jsonBuilder().startObject()
+//                    .field("query", queryBuilder)
+//                    .endObject();
+//        } catch (IOException e) {
+//            Logger.error("Elasticsearch : Erreur when create percolator from a queryBuilder", e);
+//        }
+//
+//        JestIndexRequestBuilder percolatorRequest =
+//                IndexClient.client.prepareIndex(INDEX_PERCOLATOR,
+//                        IndexService.INDEX_DEFAULT,
+//                        namePercolator)
+//                        .setSource(source);
+//
+//        return percolatorRequest.execute().actionGet();
+        return null;
     }
 
     /**
@@ -622,15 +599,15 @@ public abstract class IndexService {
      * @return
      * @throws IOException
      */
-    public static IndexResponse createPercolator(String namePercolator, String query) {
-
-        IndexRequestBuilder percolatorRequest =
-                IndexClient.client.prepareIndex(INDEX_PERCOLATOR,
-                        IndexService.INDEX_DEFAULT,
-                        namePercolator)
-                        .setSource("{\"query\": " + query + "}");
-
-        return percolatorRequest.execute().actionGet();
+    public static JestResult createPercolator(String namePercolator, String query) {
+return null;
+//        JestIndexRequestBuilder percolatorRequest =
+//                IndexClient.client.prepareIndex(INDEX_PERCOLATOR,
+//                        IndexService.INDEX_DEFAULT,
+//                        namePercolator)
+//                        .setSource("{\"query\": " + query + "}");
+//
+//        return percolatorRequest.execute().actionGet();
     }
 
     /**
@@ -639,12 +616,13 @@ public abstract class IndexService {
      * @return
      */
     public static boolean precolatorExists(String namePercolator) {
-        try {
-            GetResponse responseExist = IndexService.getPercolator(namePercolator);
-            return (responseExist.isExists());
-        } catch (IndexMissingException e) {
-            return false;
-        }
+//        try {
+//            JestResult responseExist = IndexService.getPercolator(namePercolator);
+//            return (responseExist.isExists());
+//        } catch (IndexMissingException e) {
+//            return false;
+//        }
+        return false;
     }
 
     /**
@@ -654,23 +632,24 @@ public abstract class IndexService {
      * @return
      */
     public static DeleteResponse deletePercolator(String namePercolator) {
-        return delete(new IndexQueryPath(INDEX_PERCOLATOR, IndexService.INDEX_DEFAULT), namePercolator);
+//        return delete(new IndexQueryPath(INDEX_PERCOLATOR, IndexService.INDEX_DEFAULT), namePercolator);
+        return null;
     }
 
     /**
      * Delete all percolators
      */
     public static void deletePercolators() {
-        try {
-            DeleteIndexResponse deleteIndexResponse = IndexClient.client.admin().indices().prepareDelete(INDEX_PERCOLATOR).execute().actionGet();
-            if(!deleteIndexResponse.isAcknowledged()){
-                throw new Exception(" no acknowledged");
-            }
-        } catch (IndexMissingException indexMissing) {
-            Logger.debug("ElasticSearch : Index " + INDEX_PERCOLATOR + " no exists");
-        } catch (Exception e) {
-            Logger.error("ElasticSearch : Index drop error : " + e.toString());
-        }
+//        try {
+//            DeleteJestResult deleteJestResult = IndexClient.client.admin().indices().prepareDelete(INDEX_PERCOLATOR).execute().actionGet();
+//            if(!deleteJestResult.isAcknowledged()){
+//                throw new Exception(" no acknowledged");
+//            }
+//        } catch (IndexMissingException indexMissing) {
+//            Logger.debug("ElasticSearch : Index " + INDEX_PERCOLATOR + " no exists");
+//        } catch (Exception e) {
+//            Logger.error("ElasticSearch : Index drop error : " + e.toString());
+//        }
     }
 
     /**
@@ -678,7 +657,7 @@ public abstract class IndexService {
      * @param name
      * @return
      */
-    public static GetResponse getPercolator(String name) {
+    public static JestResult getPercolator(String name) {
         return get(INDEX_PERCOLATOR, IndexService.INDEX_DEFAULT, name);
     }
 
@@ -691,28 +670,29 @@ public abstract class IndexService {
      */
     public static List<String> getPercolatorsForDoc(Index indexable) {
 
-        PercolateRequestBuilder percolateRequestBuilder = new PercolateRequestBuilder(IndexClient.client, indexable.getIndexPath().index, indexable.getIndexPath().type);
-
-        XContentBuilder doc = null;
-        try {
-            doc = jsonBuilder().startObject().startObject("doc").startObject(indexable.getIndexPath().type);
-            Map<String, Object> map = indexable.toIndex();
-            for (String key : map.keySet()) {
-                if (key != null && map.get(key) != null) {
-                    doc.field(key, map.get(key));
-                }
-            }
-            doc.endObject().endObject().endObject();
-        } catch (Exception e) {
-            Logger.debug("Elasticsearch : Error when get percolator for ");
-        }
-
-        percolateRequestBuilder.setSource(doc);
-
-        PercolateResponse percolateResponse = percolateRequestBuilder.execute().actionGet();
-        if (percolateResponse == null) {
-            return null;
-        }
-        return percolateResponse.getMatches();
+//        PercolateRequestBuilder percolateRequestBuilder = new PercolateRequestBuilder(IndexClient.client, indexable.getIndexPath().index, indexable.getIndexPath().type);
+//
+//        XContentBuilder doc = null;
+//        try {
+//            doc = jsonBuilder().startObject().startObject("doc").startObject(indexable.getIndexPath().type);
+//            Map<String, Object> map = indexable.toIndex();
+//            for (String key : map.keySet()) {
+//                if (key != null && map.get(key) != null) {
+//                    doc.field(key, map.get(key));
+//                }
+//            }
+//            doc.endObject().endObject().endObject();
+//        } catch (Exception e) {
+//            Logger.debug("Elasticsearch : Error when get percolator for ");
+//        }
+//
+//        percolateRequestBuilder.setSource(doc);
+//
+//        PercolateResponse percolateResponse = percolateRequestBuilder.execute().actionGet();
+//        if (percolateResponse == null) {
+//            return null;
+//        }
+//        return percolateResponse.getMatches();
+        return null;
     }
 }

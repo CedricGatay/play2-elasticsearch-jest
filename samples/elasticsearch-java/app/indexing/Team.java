@@ -17,7 +17,7 @@ import java.util.*;
 public class Team extends Index {
 
     public String name;
-    public Date dateCreate;
+    //public Date dateCreate;
     public String level;
     public Country country;
     public List<Player> players = new ArrayList<Player>();
@@ -31,7 +31,7 @@ public class Team extends Index {
         HashMap map = new HashMap();
         map.put("name", name);
         map.put("level", level);
-        map.put("dateCreate", dateCreate);
+        //map.put("dateCreate", dateCreate);
 
         // Serialize a Indexable Object
         map.put("country", country.toIndex());
@@ -51,7 +51,7 @@ public class Team extends Index {
 
         this.name = (String) map.get("name");
         this.level = (String) map.get("level");
-        this.dateCreate = (Date) IndexUtils.convertValue(map.get("dateCreate"), Date.class);
+        //this.dateCreate = (Date) IndexUtils.convertValue(map.get("dateCreate"), Date.class);
 
         // UnSerialize to a Indexable Object
         this.country = IndexUtils.getIndexable(map, "country", Country.class);
