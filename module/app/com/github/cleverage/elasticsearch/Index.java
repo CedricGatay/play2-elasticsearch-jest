@@ -1,6 +1,7 @@
 package com.github.cleverage.elasticsearch;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.searchbox.client.JestResult;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -63,7 +64,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public io.searchbox.client.JestResult index() {
+    public JestResult index() {
         return IndexService.index(getIndexPath(), id, this);
     }
 
@@ -72,7 +73,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public io.searchbox.client.JestResult index(String indexName) {
+    public JestResult index(String indexName) {
         return IndexService.index(getIndexPath(indexName), id, this);
     }
 
@@ -81,7 +82,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<io.searchbox.client.JestResult> indexAsync() {
+    public F.Promise<JestResult> indexAsync() {
         return IndexService.indexAsync(getIndexPath(), id, this);
     }
 
@@ -90,23 +91,23 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<io.searchbox.client.JestResult> indexAsync(String indexName) {
+    public F.Promise<JestResult> indexAsync(String indexName) {
         return IndexService.indexAsync(getIndexPath(indexName), id, this);
     }
 
-    public io.searchbox.client.JestResult update(Map<String, Object> updateFieldValues, String updateScript){
+    public JestResult update(Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.update(getIndexPath(), id, updateFieldValues, updateScript);
     }
 
-    public io.searchbox.client.JestResult update(String indexName, Map<String, Object> updateFieldValues, String updateScript){
+    public JestResult update(String indexName, Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.update(getIndexPath(indexName), id, updateFieldValues, updateScript);
     }
 
-    public F.Promise<UpdateResponse> updateAsync(Map<String,Object> updateFieldValues , String updateScript){
+    public F.Promise<JestResult> updateAsync(Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.updateAsync(getIndexPath(), id, updateFieldValues, updateScript);
     }
 
-    public F.Promise<UpdateResponse> updateAsync(String indexName, Map<String,Object> updateFieldValues , String updateScript){
+    public F.Promise<JestResult> updateAsync(String indexName, Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.updateAsync(getIndexPath(indexName), id, updateFieldValues, updateScript);
     }
 
@@ -115,7 +116,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public io.searchbox.client.JestResult delete() {
+    public JestResult delete() {
         return IndexService.delete(getIndexPath(), id);
     }
 
@@ -124,7 +125,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public io.searchbox.client.JestResult delete(String indexName) {
+    public JestResult delete(String indexName) {
         return IndexService.delete(getIndexPath(indexName), id);
     }
 
@@ -133,7 +134,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<DeleteResponse> deleteAsync() {
+    public F.Promise<JestResult> deleteAsync() {
         return IndexService.deleteAsync(getIndexPath(), id);
     }
 
@@ -142,7 +143,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<DeleteResponse> deleteAsync(String indexName) {
+    public F.Promise<JestResult> deleteAsync(String indexName) {
         return IndexService.deleteAsync(getIndexPath(indexName), id);
     }
 

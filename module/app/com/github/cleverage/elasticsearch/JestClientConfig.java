@@ -8,9 +8,11 @@ import io.searchbox.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.JestResult;
+import io.searchbox.client.JestResultHandler;
 import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Index;
 import io.searchbox.indices.Flush;
+import play.libs.F;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -54,6 +56,11 @@ public class JestClientConfig  {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    
+    public static F.Promise<JestResult> jestXcuteAsync(final Action action){
+        return F.Promise.wrap(AsyncUtils.executeAsync(IndexClient.client, action));
     }
 
     public static JestResult jestXcute(AbstractMultiIndexActionBuilder builder) {

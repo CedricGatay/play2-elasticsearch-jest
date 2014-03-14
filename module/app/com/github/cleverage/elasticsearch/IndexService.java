@@ -24,12 +24,14 @@ import org.elasticsearch.indices.IndexMissingException;
 import play.Logger;
 import play.libs.F;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcute;
+import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcuteAsync;
 
 
 public abstract class IndexService {
@@ -99,7 +101,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexAsync(IndexQueryPath indexPath, String id, Index indexable) {
-        return indexAsync(getJestIndexRequestBuilder(indexPath, id, indexable));
+        return jestXcuteAsync(getJestIndexRequestBuilder(indexPath, id, indexable).getAction());
     }
 
     /**
@@ -108,7 +110,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexAsync(JestIndexRequestBuilder jestIndexRequestBuilder) {
-        return null;//F.Promise.wrap(AsyncUtils.createPromise().success(jestIndexRequestBuilder.jestXcute()).future());
+        return jestXcuteAsync(jestIndexRequestBuilder.getAction());
     }
 
     /**
@@ -168,8 +170,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexBulkAsync(IndexQueryPath indexPath, List<? extends Index> indexables) {
-//        return AsyncUtils.executeAsyncJava(getBulkRequestBuilder(indexPath, indexables));
-        return null;
+        return jestXcuteAsync(getBulkRequestBuilder(indexPath,indexables).getAction());
     }
 
     /**
@@ -191,9 +192,8 @@ public abstract class IndexService {
      * @param bulkRequestBuilder
      * @return
      */
-    public static F.Promise<BulkResponse> indexBulkAsync(BulkRequestBuilder bulkRequestBuilder) {
-//        return AsyncUtils.executeAsyncJava(bulkRequestBuilder);
-        return null;
+    public static F.Promise<JestResult> indexBulkAsync(JestBulkRequestBuilder bulkRequestBuilder) {
+        return jestXcuteAsync(bulkRequestBuilder.getAction());
     }
 
     /**
@@ -257,12 +257,11 @@ public abstract class IndexService {
      * @param updateScript
      * @return
      */
-    public static F.Promise<UpdateResponse> updateAsync(IndexQueryPath indexPath,
-                                                        String id,
-                                                        Map<String, Object> updateFieldValues,
-                                                        String updateScript) {
-//        return updateAsync(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript));
-        return null;
+    public static F.Promise<JestResult> updateAsync(IndexQueryPath indexPath,
+                                                    String id,
+                                                    Map<String, Object> updateFieldValues,
+                                                    String updateScript) {
+        return jestXcuteAsync(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript).getAction());
     }
 
     /**
@@ -270,8 +269,8 @@ public abstract class IndexService {
      * @param updateRequestBuilder
      * @return
      */
-    public static F.Promise<UpdateResponse> updateAsync(UpdateRequestBuilder updateRequestBuilder) {
-        return AsyncUtils.executeAsyncJava(updateRequestBuilder);
+    public static F.Promise<JestResult> updateAsync(JestUpdateRequestBuilder updateRequestBuilder) {
+        return jestXcuteAsync(updateRequestBuilder.getAction());
     }
 
     /**
@@ -289,9 +288,8 @@ public abstract class IndexService {
      * @param indexPath
      * @return
      */
-    public static F.Promise<DeleteResponse> deleteAsync(IndexQueryPath indexPath, String id) {
-//        return AsyncUtils.executeAsyncJava(getDeleteRequestBuilder(indexPath, id));
-        return null;
+    public static F.Promise<JestResult> deleteAsync(IndexQueryPath indexPath, String id) {
+        return jestXcuteAsync(getDeleteRequestBuilder(indexPath, id).getAction());
     }
 
     /**
@@ -331,18 +329,12 @@ public abstract class IndexService {
                 .jestXcute().getJsonString();
     }
 
-    private static <T extends Index> T getTFromGetResponse(Class<T> clazz, GetResponse getResponse) {
-        T t = IndexUtils.getInstanceIndex(clazz);
-        if (!getResponse.isExists()) {
+    @Nullable
+    private static <T extends Index> T getTFromGetResponse(Class<T> clazz, JestResult getResponse) {
+        if (!getResponse.isSucceeded()){
             return null;
         }
-
-        // Create a new Indexable Object for the return
-        Map<String, Object> map = getResponse.getSourceAsMap();
-
-        t = (T) t.fromIndex(map);
-        t.id = getResponse.getId();
-        return t;
+        return getResponse.getSourceAsObject(clazz);
     }
 
     /**
@@ -365,16 +357,16 @@ public abstract class IndexService {
      * @param <T>
      * @return
      */
+    @Nullable
     public static <T extends Index> F.Promise<T> getAsync(IndexQueryPath indexPath, final Class<T> clazz, String id) {
-//        F.Promise<GetResponse> responsePromise = AsyncUtils.executeAsyncJava(getGetRequestBuilder(indexPath, id));
-//        return responsePromise.map(
-//            new F.Function<GetResponse, T>() {
-//                public T apply(GetResponse getResponse) {
-//                    return getTFromGetResponse(clazz, getResponse);
-//                }
-//            }
-//        );
-        return null;
+        final F.Promise<JestResult> jestResultPromise = jestXcuteAsync(getGetRequestBuilder(indexPath, id).getAction());
+        return jestResultPromise.map(
+                new F.Function<JestResult, T>() {
+                    public T apply(JestResult getResponse) {
+                        return getTFromGetResponse(clazz, getResponse);
+                    }
+                }
+        );
     }
 
     /**
