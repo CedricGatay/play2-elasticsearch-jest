@@ -1,12 +1,13 @@
 package com.github.cleverage.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.Delete;
 import io.searchbox.core.Percolate;
-import io.searchbox.indices.DeleteIndex;
-import io.searchbox.indices.Flush;
-import io.searchbox.indices.Refresh;
+import io.searchbox.indices.*;
+import io.searchbox.indices.mapping.GetMapping;
 import io.searchbox.indices.mapping.PutMapping;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -16,6 +17,9 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Requests;
+import org.elasticsearch.cluster.ClusterState;
+import org.elasticsearch.common.collect.ImmutableMap;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.percolator.PercolatorService;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -23,6 +27,7 @@ import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.indices.IndexMissingException;
 import play.Logger;
 import play.libs.F;
+import play.libs.Json;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -405,46 +410,32 @@ public abstract class IndexService {
      * @return true if exists
      */
     public static boolean existsIndex(String indexName) {
-
-//        Client client = IndexClient.client;
-//        AdminClient admin = client.admin();
-//        IndicesAdminClient indices = admin.indices();
-//        IndicesExistsRequestBuilder indicesExistsRequestBuilder = indices.prepareExists(indexName);
-//        IndicesExistsResponse response = indicesExistsRequestBuilder.execute().actionGet();
-//
-//        return response.isExists();
-        return false;
+        final JestResult jestResult = jestXcute(new IndicesExists.Builder(indexName));
+        return jestResult.isSucceeded();
     }
 
     /**
      * Create the index
      */
     public static void createIndex(String indexName) {
-//        Logger.debug("ElasticSearch : creating index [" + indexName + "]");
-//        try {
-//            CreateJestIndexRequestBuilder creator = IndexClient.client.admin().indices().prepareCreate(indexName);
-//            String setting = IndexClient.config.indexSettings.get(indexName);
-//            if (setting != null) {
-//                creator.setSettings(setting);
-//            }
-//            creator.execute().actionGet();
-//        } catch (Exception e) {
-//            Logger.error("ElasticSearch : Index create error : " + e.toString());
-//        }
+        Logger.debug("ElasticSearch : creating index [" + indexName + "]");
+        final String jsonNode = IndexClient.config.indexSettings.get(indexName);
+        final CreateIndex.Builder builder= new CreateIndex.Builder(indexName);
+        if (StringUtils.isNotBlank(jsonNode)) {
+            final ImmutableMap<String, String> settings = ImmutableSettings.builder().loadFromSource(jsonNode).build().getAsMap();
+            builder.settings(settings);
+        }
+        final JestResult jestResult = jestXcute(builder.build());
+        Logger.debug("ElasticSearch : Index creation result => " + jestResult.getJsonString());
     }
 
     /**
      * Delete the index
      */
     public static void deleteIndex(String indexName) {
-//        Logger.debug("ElasticSearch : deleting index [" + indexName + "]");
-//        try {
-//            IndexClient.client.admin().indices().prepareDelete(indexName).execute().actionGet();
-//        } catch (IndexMissingException indexMissing) {
-//            Logger.debug("ElasticSearch : Index " + indexName + " no exists");
-//        } catch (Exception e) {
-//            Logger.error("ElasticSearch : Index drop error : " + e.toString());
-//        }
+        Logger.debug("ElasticSearch : deleting index [" + indexName + "]");
+        final DeleteIndex.Builder builder = new DeleteIndex.Builder(indexName);
+        jestXcute(builder.build());
     }
 
     /**
@@ -465,7 +456,9 @@ public abstract class IndexService {
     public static JestResult createMapping(String indexName, String indexType, String indexMapping) {
         Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
         final PutMapping build = new PutMapping.Builder(indexName, indexType, indexMapping).build();
-        return jestXcute(build);
+        final JestResult jestResult = jestXcute(build);
+        Logger.debug("createMapping =>" + jestResult.getJsonString());
+        return jestResult;
     }
 
     /**
@@ -474,17 +467,10 @@ public abstract class IndexService {
      * @return
      */
     public static String getMapping(String indexName, String indexType) {
-        return null;
-//        ClusterState state = IndexClient.client.admin().cluster()
-//                .prepareState()
-//                .setFilterIndices(IndexService.INDEX_DEFAULT)
-//                .execute().actionGet().getState();
-//        MappingMetaData mappingMetaData = state.getMetaData().index(indexName).mapping(indexType);
-//        if (mappingMetaData != null) {
-//            return mappingMetaData.source().toString();
-//        } else {
-//            return null;
-//        }
+        final GetMapping build = new GetMapping.Builder().addIndex(indexName).addType(indexType).build();
+        final String jsonString = jestXcute(build).getJsonString();
+        Logger.debug("GetMapping => " + jsonString);
+        return jsonString;
     }
 
     /**

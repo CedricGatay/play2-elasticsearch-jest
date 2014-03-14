@@ -10,11 +10,19 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.JestResult;
 import io.searchbox.client.JestResultHandler;
 import io.searchbox.client.config.HttpClientConfig;
+import io.searchbox.client.http.JestHttpClient;
 import io.searchbox.core.Index;
 import io.searchbox.indices.Flush;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.params.AuthPNames;
+import org.apache.http.client.params.AuthPolicy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import play.libs.F;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +43,7 @@ public class JestClientConfig  {
                     result.get("searchly-n/a")).get(0)).get("credentials")).get("uri");
         } else {
             // generic or CloudBees
-//            connectionUrl = "https://t2a6vxdu:dsb9486p3b1v6m7w@cypress-7521189.eu-west-1.bonsai.io/";//http://site:your-api-key@api.searchbox.io";
+//            connectionUrl = http://site:your-api-key@api.searchbox.io";
             connectionUrl = "http://localhost:9200";
         }
 

@@ -19,6 +19,7 @@ import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.threadpool.ThreadPool;
+import play.Logger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -41,7 +42,9 @@ class JestSearchRequestBuilder implements JestRequest<Search> {
 
     @Override
     public Search getAction() {
-        return new Search.Builder(searchSourceBuilder.toString())
+        final String query = searchSourceBuilder.toString();
+        Logger.debug(" Query => " + query);
+        return new Search.Builder(query)
                 .addIndex(indices)
                 .addType(types)
                 .setSearchType(searchType)

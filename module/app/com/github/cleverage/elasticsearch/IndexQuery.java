@@ -8,6 +8,7 @@ import io.searchbox.core.search.facet.QueryFacet;
 import io.searchbox.core.search.facet.TermsFacet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.lucene.util.CollectionUtil;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -19,6 +20,7 @@ import org.elasticsearch.search.facet.Facets;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.util.CollectionUtils;
 import play.Logger;
 import play.libs.F;
 
@@ -204,7 +206,7 @@ public class IndexQuery<T extends Index> {
         JestResult searchResponse = jestXcute(request);
 
         if (IndexClient.config.showRequest && searchResponse != null) {
-            Logger.debug("ElasticSearch : Response -> " + searchResponse.toString());
+            Logger.debug("ElasticSearch : Response -> " + searchResponse.getJsonString());
         }
 
         IndexResults<T> searchResults = toSearchResults(searchResponse);
@@ -275,9 +277,7 @@ public class IndexQuery<T extends Index> {
     }
 
     private IndexResults<T> toSearchResults(JestResult searchResponse) {
-        Logger.info(">> To search Results " + searchResponse.getJsonString());
         final JsonObject jsonObject = searchResponse.getJsonObject();
-        Logger.info(">> sourceAsObject" + jsonObject);
 //        // Get Total Records Found
         long count = jsonObject.get("hits").getAsJsonObject().get("total").getAsInt();
 //
