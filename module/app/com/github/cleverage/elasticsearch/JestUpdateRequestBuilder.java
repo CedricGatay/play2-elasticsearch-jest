@@ -18,25 +18,15 @@ import java.util.Map;
 /**
  * @author cgatay
  */
-class JestUpdateRequestBuilder {
+class JestUpdateRequestBuilder implements JestRequest<Update>{
     private final String index;
     private String type;
     private String id;
-    private String routing;
-    private String parent;
     private String script;
-    private String scriptLang;
     private Map<String, Object> scriptParams;
-    private String[] fields;
-    private int retryOnConflict;
     private boolean refresh;
-    private ReplicationType replicationType;
-    private WriteConsistencyLevel consistencyLevel;
-    private String percolate;
     private IndexRequest indexRequest;
-    private Map source;
     private IndexRequest upsertRequest;
-    private boolean shouldUpsertDoc;
 
     public JestUpdateRequestBuilder(String index, String type, String id) {
         this.index = index;
@@ -61,20 +51,6 @@ class JestUpdateRequestBuilder {
     }
 
     /**
-     * Controls the shard routing of the request. Using this value to hash the shard
-     * and not the id.
-     */
-    public JestUpdateRequestBuilder setRouting(String routing) {
-        this.routing = routing;
-        return this;
-    }
-
-    public JestUpdateRequestBuilder setParent(String parent) {
-        this.parent = parent;
-        return this;
-    }
-
-    /**
      * The script to execute. Note, make sure not to send different script each times and instead
      * use script params if possible with the same (automatically compiled) script.
      */
@@ -83,13 +59,6 @@ class JestUpdateRequestBuilder {
         return this;
     }
 
-    /**
-     * The language of the script to execute.
-     */
-    public JestUpdateRequestBuilder setScriptLang(String scriptLang) {
-        this.scriptLang = scriptLang;
-        return this;
-    }
 
     /**
      * Sets the script parameters to use with the script.
@@ -108,22 +77,6 @@ class JestUpdateRequestBuilder {
         return this;
     }
 
-    /**
-     * Explicitly specify the fields that will be returned. By default, nothing is returned.
-     */
-    public JestUpdateRequestBuilder setFields(String... fields) {
-        this.fields = fields;
-        return this;
-    }
-
-    /**
-     * Sets the number of retries of a version conflict occurs because the document was updated between
-     * getting it and updating it. Defaults to 0.
-     */
-    public JestUpdateRequestBuilder setRetryOnConflict(int retryOnConflict) {
-        this.retryOnConflict = retryOnConflict;
-        return this;
-    }
 
     /**
      * Should a refresh be executed post this update operation causing the operation to
@@ -132,32 +85,6 @@ class JestUpdateRequestBuilder {
      */
     public JestUpdateRequestBuilder setRefresh(boolean refresh) {
         this.refresh = refresh;
-        return this;
-    }
-
-    /**
-     * Sets the replication type.
-     */
-    public JestUpdateRequestBuilder setReplicationType(ReplicationType replicationType) {
-        this.replicationType = replicationType;
-        return this;
-    }
-
-    /**
-     * Sets the consistency level of write. Defaults to {@link org.elasticsearch.action.WriteConsistencyLevel#DEFAULT}
-     */
-    public JestUpdateRequestBuilder setConsistencyLevel(WriteConsistencyLevel consistencyLevel) {
-        this.consistencyLevel = consistencyLevel;
-        return this;
-    }
-
-    /**
-     * Causes the updated document to be percolated. The parameter is the percolate query
-     * to use to reduce the percolated queries that are going to run against this doc. Can be
-     * set to <tt>*</tt> to indicate that all percolate queries should be run.
-     */
-    public JestUpdateRequestBuilder setPercolate(String percolate) {
-        this.percolate = percolate;
         return this;
     }
 
@@ -289,36 +216,6 @@ class JestUpdateRequestBuilder {
     public JestUpdateRequestBuilder setUpsert(byte[] source, int offset, int length) {
         this.upsertRequest.source(source, offset, length);
         return this;
-    }
-
-    /**
-     * Sets the doc source of the update request to be used when the document does not exists. The doc
-     * includes field and value pairs.
-     */
-    public JestUpdateRequestBuilder setSource(Map source) {
-        this.source = source;
-        return this;
-    }
-
-    /**
-     * Sets whether the specified doc parameter should be used as upsert document.
-     */
-    public JestUpdateRequestBuilder setDocAsUpsert(boolean shouldUpsertDoc) {
-        this.shouldUpsertDoc = shouldUpsertDoc;
-        return this;
-    }
-    
-
-    @Nullable
-    public JestResult jestXcute(){
-        final Update build = getAction();
-
-        try {
-            return IndexClient.client.execute(build);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public Update getAction() {

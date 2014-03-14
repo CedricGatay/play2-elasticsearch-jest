@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 /**
  * @author cgatay
  */
-class JestDeleteRequestBuilder {
+class JestDeleteRequestBuilder implements JestRequest<Delete>{
     private final String index;
     private String type;
     private String id;
@@ -124,17 +124,6 @@ class JestDeleteRequestBuilder {
         return this.versionType;
     }
 
-    @Nullable
-    public JestResult jestXcute(){
-        final Delete build = getAction();
-
-        try {
-            return IndexClient.client.execute(build);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     public Delete getAction() {
         return new Delete.Builder(id).refresh(refresh).type(type).index(index).build();

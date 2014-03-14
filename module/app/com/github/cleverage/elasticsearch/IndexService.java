@@ -45,7 +45,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestIndexRequestBuilder getIndexRequest(IndexQueryPath indexPath, String id, Index indexable) {
-        return (JestIndexRequestBuilder) new JestIndexRequestBuilder(indexPath.index)
+        return new JestIndexRequestBuilder(indexPath.index)
                 .setType(indexPath.type)
                 .setId(id)
                 .setSource(indexable.toIndex());
@@ -59,7 +59,7 @@ public abstract class IndexService {
      */
     public static JestResult index(JestIndexRequestBuilder requestBuilder) {
 
-        JestResult jestResult = requestBuilder.jestXcute();
+        JestResult jestResult = jestXcute(requestBuilder);
 
         if (Logger.isDebugEnabled()) {
             Logger.debug("ElasticSearch : Index " + jestResult.getJsonString());
@@ -86,7 +86,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestResult index(IndexQueryPath indexPath, String id, Index indexable) {
-        JestResult jestResult = getJestIndexRequestBuilder(indexPath, id, indexable).jestXcute();
+        JestResult jestResult = jestXcute(getJestIndexRequestBuilder(indexPath, id, indexable));
         if (Logger.isDebugEnabled()) {
             Logger.debug("ElasticSearch : Index : " + jestResult.getJsonString());
         }
@@ -121,7 +121,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestResult index(IndexQueryPath indexPath, String id, String json) {
-        return getJestIndexRequestBuilder(indexPath, id, json).jestXcute();
+        return jestXcute(getJestIndexRequestBuilder(indexPath, id, json));
     }
 
     /**
@@ -132,7 +132,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestIndexRequestBuilder getJestIndexRequestBuilder(IndexQueryPath indexPath, String id, String json) {
-        return (JestIndexRequestBuilder) new JestIndexRequestBuilder(indexPath.index)
+        return new JestIndexRequestBuilder(indexPath.index)
                 .setType(indexPath.type)
                 .setId(id)
                 .setSource(json);
@@ -160,7 +160,7 @@ public abstract class IndexService {
      */
     public static JestResult indexBulk(IndexQueryPath indexPath, List<? extends Index> indexables) {
         JestBulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, indexables);
-        return bulkRequestBuilder.jestXcute();
+        return jestXcute(bulkRequestBuilder);
     }
 
     /**
@@ -217,7 +217,7 @@ public abstract class IndexService {
      */
     public static JestResult indexBulk(IndexQueryPath indexPath, Map<String, String> jsonMap) {
         JestBulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, jsonMap);
-        return bulkRequestBuilder.jestXcute();
+        return jestXcute(bulkRequestBuilder);
     }
 
     /**
@@ -245,8 +245,7 @@ public abstract class IndexService {
                                     String id,
                                     Map<String, Object> updateFieldValues,
                                     String updateScript) {
-        return getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript)
-                .jestXcute();
+        return jestXcute(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript));
     }
 
     /**
@@ -298,8 +297,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestResult delete(IndexQueryPath indexPath, String id) {
-        JestResult deleteResponse = getDeleteRequestBuilder(indexPath, id)
-                .jestXcute();
+        JestResult deleteResponse = jestXcute(getDeleteRequestBuilder(indexPath, id));
 
         if (Logger.isDebugEnabled()) {
             Logger.debug("ElasticSearch : Delete " + deleteResponse.toString());
@@ -325,8 +323,7 @@ public abstract class IndexService {
      * @return
      */
     public static String getAsString(IndexQueryPath indexPath, String id) {
-        return getGetRequestBuilder(indexPath, id)
-                .jestXcute().getJsonString();
+        return jestXcute(getGetRequestBuilder(indexPath, id)).getJsonString();
     }
 
     @Nullable
@@ -346,7 +343,7 @@ public abstract class IndexService {
      */
     public static <T extends Index> T get(IndexQueryPath indexPath, Class<T> clazz, String id) {
         JestGetRequestBuilder getRequestBuilder = getGetRequestBuilder(indexPath, id);
-        return getRequestBuilder.jestXcute().getSourceAsObject(clazz);
+        return jestXcute(getRequestBuilder).getSourceAsObject(clazz);
     }
 
     /**
@@ -377,7 +374,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestResult get(String indexName, String indexType, String id) {
-        return new JestGetRequestBuilder(indexName, indexType, id).jestXcute();
+        return jestXcute(new JestGetRequestBuilder(indexName, indexType, id));
     }
 
     /**

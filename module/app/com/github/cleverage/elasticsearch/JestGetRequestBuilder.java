@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 /**
  * @author cgatay
  */
-class JestGetRequestBuilder {
+class JestGetRequestBuilder implements JestRequest<Get>{
     private final String index;
     private final String type;
     private final String id;
@@ -24,18 +24,6 @@ class JestGetRequestBuilder {
         this.index = index;
         this.type = type;
         this.id = id;
-    }
-
-    @Nullable
-    public JestResult jestXcute(){
-        final Get build = getAction();
-
-        try {
-            return IndexClient.client.execute(build);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public Get getAction() {

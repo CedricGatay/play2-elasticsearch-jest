@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcute;
+import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcuteAsync;
+
 /**
  * An ElasticSearch query
  *
@@ -187,25 +190,20 @@ public class IndexQuery<T extends Index> {
      * @return
      */
     public F.Promise<IndexResults<T>> fetchAsync(final IndexQueryPath indexQueryPath, final FilterBuilder filter) {
-        return null;//F.Promise.wrap(AsyncUtils.createPromise().success(fetch(indexQueryPath, filter)).future());
-            
-        
-//        JestSearchRequestBuilder request = getSearchRequestBuilder(indexQueryPath, filter);
-//        F.Promise<SearchResponse> searchResponsePromise = AsyncUtils.executeAsyncJava(request);
-//        return searchResponsePromise.map(new F.Function<SearchResponse, IndexResults<T>>() {
-//            @Override
-//            public IndexResults<T> apply(SearchResponse searchResponse) throws Throwable {
-//                return toSearchResults(searchResponse);
-//            }
-//        });
-
+        final F.Promise<JestResult> jestResultPromise = jestXcuteAsync(getSearchRequestBuilder(indexQueryPath, filter).getAction());
+        return jestResultPromise.map(new F.Function<JestResult, IndexResults<T>>() {
+            @Override
+            public IndexResults<T> apply(JestResult jestResult) throws Throwable {
+                return toSearchResults(jestResult);
+            }
+        });
     }
 
     public IndexResults<T> executeSearchRequest(JestSearchRequestBuilder request) {
 
-        JestResult searchResponse = request.jestXcute();
+        JestResult searchResponse = jestXcute(request);
 
-        if (IndexClient.config.showRequest) {
+        if (IndexClient.config.showRequest && searchResponse != null) {
             Logger.debug("ElasticSearch : Response -> " + searchResponse.toString());
         }
 
@@ -221,10 +219,10 @@ public class IndexQuery<T extends Index> {
     public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath, FilterBuilder filter) {
 
         // Build request
-            JestSearchRequestBuilder request = (JestSearchRequestBuilder) new JestSearchRequestBuilder()
+            JestSearchRequestBuilder request = new JestSearchRequestBuilder()
                 .setIndices(indexQueryPath.index)
                 .setTypes(indexQueryPath.type)
-                .setSearchType(SearchType.QUERY_THEN_FETCH)
+                .setSearchType(io.searchbox.params.SearchType.QUERY_THEN_FETCH)
                 .setFilter(filter);
 
         // set Query

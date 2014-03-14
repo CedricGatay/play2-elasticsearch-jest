@@ -49,6 +49,11 @@ public class JestClientConfig  {
     }
 
     @Nullable
+    public static JestResult jestXcute(final JestRequest jestRequest){
+        return jestXcute(jestRequest.getAction());
+    }
+
+    @Nullable
     public static JestResult jestXcute(final Action action){
         try {
             return IndexClient.client.execute(action);

@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * @author cgatay
  */
-class JestBulkRequestBuilder {
+class JestBulkRequestBuilder implements JestRequest<Bulk>{
 
 
     private final List<BulkableAction> actionList;
@@ -154,17 +154,5 @@ class JestBulkRequestBuilder {
 
     public Bulk getAction() {
         return new Bulk.Builder().refresh(refresh).addAction(actionList).build();
-    }
-
-    @Nullable
-    public JestResult jestXcute(){
-        final Bulk build = getAction();
-
-        try {
-            return IndexClient.client.execute(build);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
