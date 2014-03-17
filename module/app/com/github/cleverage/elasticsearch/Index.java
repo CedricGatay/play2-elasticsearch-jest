@@ -1,6 +1,7 @@
 package com.github.cleverage.elasticsearch;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.searchbox.annotations.JestId;
 import io.searchbox.client.JestResult;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -19,6 +20,7 @@ import java.util.Map;
 @JsonIgnoreProperties({"searchHit"})
 public abstract class Index implements Indexable {
 
+    @JestId
     public String id;
 
     /**

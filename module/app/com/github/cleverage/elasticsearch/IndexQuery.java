@@ -1,7 +1,9 @@
 package com.github.cleverage.elasticsearch;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import io.searchbox.client.JestResult;
+import com.github.cleverage.elasticsearch.JestResultUtils;
 import io.searchbox.core.search.facet.Facet;
 import io.searchbox.core.search.facet.GeoDistanceFacet;
 import io.searchbox.core.search.facet.QueryFacet;
@@ -277,44 +279,30 @@ public class IndexQuery<T extends Index> {
     }
 
     private IndexResults<T> toSearchResults(JestResult searchResponse) {
-        final JsonObject jsonObject = searchResponse.getJsonObject();
-//        // Get Total Records Found
-        long count = jsonObject.get("hits").getAsJsonObject().get("total").getAsInt();
-//
-//        // Get Facets
-        List<Facet> facetsResponse = new ArrayList<Facet>();
-        facetsResponse.addAll(searchResponse.getFacets(TermsFacet.class));
-        facetsResponse.addAll(searchResponse.getFacets(QueryFacet.class));
-        facetsResponse.addAll(searchResponse.getFacets(GeoDistanceFacet.class));
-//
-//        // Get List results
-        List<T> results = searchResponse.getSourceAsObjectList(clazz);
-//
-////        // Loop on each one
-//        for (T h : ) {
-//
-//            // Get Data Map
-//            Map<String, Object> map = h.sourceAsMap();
-//
-//            // Create a new Indexable Object for the return
-//            T objectIndexable = IndexUtils.getInstanceIndex(clazz);
-//            T t = (T) objectIndexable.fromIndex(map);
-//            t.id = h.id;
-//            t.searchHit = h.searchHit;
-//
-//            results.add(t);
-//        }
-//
-//        if(Logger.isDebugEnabled()) {
-//            Logger.debug("ElasticSearch : Results -> "+ results.toString());
-//        }
-//
+        final JestResultUtils jestResultUtils = new JestResultUtils(searchResponse);
+        // Get Total Records Found
+        long count = jestResultUtils.getTotalHits();
+        
+        // Get Facets
+        List<Facet> facetsResponse = jestResultUtils.getFacets();
+
+        // Get List results
+        List<T> results = Lists.newArrayList();
+        // Loop on each one
+        for (JestResultUtils.Result h : jestResultUtils.getHits()) {
+            results.add(h.getObject(clazz));
+        }
+
+        if(Logger.isDebugEnabled()) {
+            Logger.debug("ElasticSearch : Results -> "+ results.toString());
+        }
+
         // pagination
         long pageSize = 10;
         if (size > -1) {
             pageSize = size;
         }
-//
+
         long pageCurrent = 1;
         if(from > 0) {
             pageCurrent = ((int) (from / pageSize))+1;

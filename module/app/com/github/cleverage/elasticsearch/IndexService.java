@@ -2,6 +2,7 @@ package com.github.cleverage.elasticsearch;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.searchbox.client.JestResult;
+import com.github.cleverage.elasticsearch.JestResultUtils;
 import io.searchbox.core.Delete;
 import io.searchbox.core.Percolate;
 import io.searchbox.indices.*;
@@ -31,6 +32,7 @@ import play.libs.Json;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +177,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexBulkAsync(IndexQueryPath indexPath, List<? extends Index> indexables) {
-        return jestXcuteAsync(getBulkRequestBuilder(indexPath,indexables).getAction());
+        return jestXcuteAsync(getBulkRequestBuilder(indexPath, indexables).getAction());
     }
 
     /**
@@ -336,7 +338,7 @@ public abstract class IndexService {
         if (!getResponse.isSucceeded()){
             return null;
         }
-        return getResponse.getSourceAsObject(clazz);
+        return new JestResultUtils(getResponse).getFirstHit(clazz);
     }
 
     /**
@@ -348,7 +350,7 @@ public abstract class IndexService {
      */
     public static <T extends Index> T get(IndexQueryPath indexPath, Class<T> clazz, String id) {
         JestGetRequestBuilder getRequestBuilder = getGetRequestBuilder(indexPath, id);
-        return jestXcute(getRequestBuilder).getSourceAsObject(clazz);
+        return getTFromGetResponse(clazz, jestXcute(getRequestBuilder));
     }
 
     /**
