@@ -1,7 +1,10 @@
 package com.github.cleverage.elasticsearch;
 
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 import play.Logger;
 
 import java.math.BigDecimal;
@@ -167,7 +170,7 @@ public abstract class IndexUtils {
 
     private static Date getDate(String val) {
         try {
-            return XContentBuilder.defaultDatePrinter.parseDateTime(val).toDate();
+            return ISODateTimeFormat.dateTimeParser().withZoneUTC().parseLocalDateTime(val).toDate();
         } catch (Throwable t) {
             Logger.error(val, t);
         }

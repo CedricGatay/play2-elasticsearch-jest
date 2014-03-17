@@ -162,8 +162,13 @@ public class JestResultUtils {
         @SuppressWarnings("unchecked")
         public <T extends Index> T getObject(Class<T> clazz){
             if (convertedObject == null) {
-                convertedObject = gson.fromJson(source, clazz);
-                convertedObject.id = id();
+                // Get Data Map
+                Map<String, Object> map = sourceAsMap();
+                // Create a new Indexable Object for the return
+                T objectIndexable = IndexUtils.getInstanceIndex(clazz);
+                T t = (T) objectIndexable.fromIndex(map);
+                t.id = id();
+                convertedObject = t;
             }
             return (T)convertedObject;
         }
