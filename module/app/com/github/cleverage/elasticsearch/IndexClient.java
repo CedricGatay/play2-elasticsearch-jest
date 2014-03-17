@@ -27,9 +27,15 @@ public class IndexClient {
     }
 
     public void start() throws Exception {
-
         // Load Elasticsearch Settings
         ImmutableSettings.Builder settings = loadSettings();
+        if (this.isLocalMode()) {
+            Logger.info("ElasticSearch : Starting in Local Mode");
+
+            NodeBuilder nb = nodeBuilder().settings(settings).local(true).client(false).data(true);
+            node = nb.node();
+            Logger.info("ElasticSearch : Started in Local Mode");
+        }
 
         client = JestClientConfig.jestClient();
 

@@ -2,27 +2,20 @@ package com.github.cleverage.elasticsearch;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.searchbox.AbstractAction;
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.databind.util.ISO8601Utils;
+import com.google.gson.GsonBuilder;
 import io.searchbox.AbstractMultiIndexActionBuilder;
 import io.searchbox.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.JestResult;
-import io.searchbox.client.JestResultHandler;
 import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.client.http.JestHttpClient;
-import io.searchbox.core.Index;
-import io.searchbox.indices.Flush;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.auth.params.AuthPNames;
-import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.joda.time.format.ISODateTimeFormat;
 import play.libs.F;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
+import java.text.DateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +41,11 @@ public class JestClientConfig  {
         }
 
         // Configuration
-        HttpClientConfig clientConfig = new HttpClientConfig.Builder(connectionUrl).multiThreaded(true).build();
+        final HttpClientConfig.Builder builder = new HttpClientConfig.Builder(connectionUrl).multiThreaded(true);
+        
+        builder.gson(new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").create());
+        HttpClientConfig clientConfig = builder.build();
 
         // Construct a new Jest client according to configuration via factory
         JestClientFactory factory = new JestClientFactory();
