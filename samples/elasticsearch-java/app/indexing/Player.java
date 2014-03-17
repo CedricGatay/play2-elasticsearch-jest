@@ -37,7 +37,7 @@ public class Player implements Indexable {
         }
 
         this.name = (String) map.get("name");
-        this.weight = (Integer) map.get("weight");
+        this.weight = ((Double) map.get("weight")).intValue();
         this.position = (List<String>) map.get("position");
         return this;
     }
