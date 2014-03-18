@@ -19,9 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcute;
-import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcuteAsync;
-import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.log;
+import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.*;
 
 
 public abstract class IndexService {
@@ -49,7 +47,7 @@ public abstract class IndexService {
      */
     @Nullable
     public static JestResult index(JestIndexRequestBuilder requestBuilder) {
-        JestResult jestResult = jestXcute(requestBuilder);
+        JestResult jestResult = execute(requestBuilder);
         log(jestResult, "index");
         return jestResult;
     }
@@ -75,7 +73,7 @@ public abstract class IndexService {
      */
     @Nullable
     public static JestResult index(IndexQueryPath indexPath, String id, Index indexable) {
-        JestResult jestResult = jestXcute(getJestIndexRequestBuilder(indexPath, id, indexable));
+        JestResult jestResult = execute(getJestIndexRequestBuilder(indexPath, id, indexable));
         log(jestResult, "index");
         return jestResult;
     }
@@ -88,7 +86,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexAsync(IndexQueryPath indexPath, String id, Index indexable) {
-        return jestXcuteAsync(getJestIndexRequestBuilder(indexPath, id, indexable).getAction());
+        return executeAsync(getJestIndexRequestBuilder(indexPath, id, indexable).getAction());
     }
 
     /**
@@ -98,7 +96,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexAsync(JestIndexRequestBuilder jestIndexRequestBuilder) {
-        return jestXcuteAsync(jestIndexRequestBuilder.getAction());
+        return executeAsync(jestIndexRequestBuilder.getAction());
     }
 
     /**
@@ -111,7 +109,7 @@ public abstract class IndexService {
      */
     @Nullable
     public static JestResult index(IndexQueryPath indexPath, String id, String json) {
-        return jestXcute(getJestIndexRequestBuilder(indexPath, id, json));
+        return execute(getJestIndexRequestBuilder(indexPath, id, json));
     }
 
     /**
@@ -153,7 +151,7 @@ public abstract class IndexService {
      */
     public static JestResult indexBulk(IndexQueryPath indexPath, List<? extends Index> indexables) {
         JestBulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, indexables);
-        return jestXcute(bulkRequestBuilder);
+        return execute(bulkRequestBuilder);
     }
 
     /**
@@ -164,7 +162,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexBulkAsync(IndexQueryPath indexPath, List<? extends Index> indexables) {
-        return jestXcuteAsync(getBulkRequestBuilder(indexPath, indexables).getAction());
+        return executeAsync(getBulkRequestBuilder(indexPath, indexables).getAction());
     }
 
     /**
@@ -189,7 +187,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> indexBulkAsync(JestBulkRequestBuilder bulkRequestBuilder) {
-        return jestXcuteAsync(bulkRequestBuilder.getAction());
+        return executeAsync(bulkRequestBuilder.getAction());
     }
 
     /**
@@ -215,7 +213,7 @@ public abstract class IndexService {
      */
     public static JestResult indexBulk(IndexQueryPath indexPath, Map<String, String> jsonMap) {
         JestBulkRequestBuilder bulkRequestBuilder = getBulkRequestBuilder(indexPath, jsonMap);
-        return jestXcute(bulkRequestBuilder);
+        return execute(bulkRequestBuilder);
     }
 
     /**
@@ -245,7 +243,7 @@ public abstract class IndexService {
                                     String id,
                                     Map<String, Object> updateFieldValues,
                                     String updateScript) {
-        return jestXcute(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript));
+        return execute(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript));
     }
 
     /**
@@ -261,7 +259,7 @@ public abstract class IndexService {
                                                     String id,
                                                     Map<String, Object> updateFieldValues,
                                                     String updateScript) {
-        return jestXcuteAsync(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript).getAction());
+        return executeAsync(getUpdateRequestBuilder(indexPath, id, updateFieldValues, updateScript).getAction());
     }
 
     /**
@@ -271,7 +269,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> updateAsync(JestUpdateRequestBuilder updateRequestBuilder) {
-        return jestXcuteAsync(updateRequestBuilder.getAction());
+        return executeAsync(updateRequestBuilder.getAction());
     }
 
     /**
@@ -292,7 +290,7 @@ public abstract class IndexService {
      * @return
      */
     public static F.Promise<JestResult> deleteAsync(IndexQueryPath indexPath, String id) {
-        return jestXcuteAsync(getDeleteRequestBuilder(indexPath, id).getAction());
+        return executeAsync(getDeleteRequestBuilder(indexPath, id).getAction());
     }
 
     /**
@@ -303,7 +301,7 @@ public abstract class IndexService {
      */
     @Nullable
     public static JestResult delete(IndexQueryPath indexPath, String id) {
-        JestResult deleteResponse = jestXcute(getDeleteRequestBuilder(indexPath, id));
+        JestResult deleteResponse = execute(getDeleteRequestBuilder(indexPath, id));
         log(deleteResponse, "delete");
         return deleteResponse;
     }
@@ -328,7 +326,7 @@ public abstract class IndexService {
      */
     @NotNull
     public static String getAsString(IndexQueryPath indexPath, String id) {
-        final JestResult jestResult = jestXcute(getGetRequestBuilder(indexPath, id));
+        final JestResult jestResult = execute(getGetRequestBuilder(indexPath, id));
         if (jestResult != null) {
             return jestResult.getJsonString();
         }
@@ -352,7 +350,7 @@ public abstract class IndexService {
      */
     public static <T extends Index> T get(IndexQueryPath indexPath, Class<T> clazz, String id) {
         JestGetRequestBuilder getRequestBuilder = getGetRequestBuilder(indexPath, id);
-        return getTFromGetResponse(clazz, jestXcute(getRequestBuilder));
+        return getTFromGetResponse(clazz, execute(getRequestBuilder));
     }
 
     /**
@@ -366,7 +364,7 @@ public abstract class IndexService {
      */
     @Nullable
     public static <T extends Index> F.Promise<T> getAsync(IndexQueryPath indexPath, final Class<T> clazz, String id) {
-        final F.Promise<JestResult> jestResultPromise = jestXcuteAsync(getGetRequestBuilder(indexPath, id).getAction());
+        final F.Promise<JestResult> jestResultPromise = executeAsync(getGetRequestBuilder(indexPath, id).getAction());
         return jestResultPromise.map(
                 new F.Function<JestResult, T>() {
                     public T apply(JestResult getResponse) {
@@ -385,7 +383,7 @@ public abstract class IndexService {
      * @return
      */
     public static JestResult get(String indexName, String indexType, String id) {
-        return jestXcute(new JestGetRequestBuilder(indexName, indexType, id));
+        return execute(new JestGetRequestBuilder(indexName, indexType, id));
     }
 
     /**
@@ -419,8 +417,8 @@ public abstract class IndexService {
      * @return true if exists
      */
     public static boolean existsIndex(String indexName) {
-        final JestResult jestResult = jestXcute(new IndicesExists.Builder(indexName));
-        return jestResult.isSucceeded();
+        final JestResult jestResult = execute(new IndicesExists.Builder(indexName).build());
+        return jestResult != null && jestResult.isSucceeded();
     }
 
     /**
@@ -434,7 +432,7 @@ public abstract class IndexService {
             final ImmutableMap<String, String> settings = ImmutableSettings.builder().loadFromSource(jsonNode).build().getAsMap();
             builder.settings(settings);
         }
-        final JestResult jestResult = jestXcute(builder.build());
+        final JestResult jestResult = execute(builder.build());
         log(jestResult, "index creation result =>");
     }
 
@@ -444,7 +442,7 @@ public abstract class IndexService {
     public static void deleteIndex(String indexName) {
         Logger.debug("ElasticSearch : deleting index [" + indexName + "]");
         final DeleteIndex.Builder builder = new DeleteIndex.Builder(indexName);
-        jestXcute(builder.build());
+        execute(builder.build());
     }
 
     /**
@@ -466,7 +464,7 @@ public abstract class IndexService {
     public static JestResult createMapping(String indexName, String indexType, String indexMapping) {
         Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
         final PutMapping build = new PutMapping.Builder(indexName, indexType, indexMapping).build();
-        return jestXcute(build);
+        return execute(build);
     }
 
     /**
@@ -478,7 +476,7 @@ public abstract class IndexService {
     @NotNull
     public static String getMapping(String indexName, String indexType) {
         final GetMapping build = new GetMapping.Builder().addIndex(indexName).addType(indexType).build();
-        final JestResult jestResult = jestXcute(build);
+        final JestResult jestResult = execute(build);
         if (jestResult != null) {
             return jestResult.getJsonString();
         }
@@ -536,7 +534,7 @@ public abstract class IndexService {
      * @param indexName
      */
     private static void refresh(String indexName) {
-        jestXcute(new Refresh.Builder().addIndex(indexName).build());
+        execute(new Refresh.Builder().addIndex(indexName).build());
     }
 
     /**
@@ -555,7 +553,7 @@ public abstract class IndexService {
      * @param indexName
      */
     public static void flush(String indexName) {
-        jestXcute(new Flush.Builder().addIndex(indexName));
+        execute(new Flush.Builder().addIndex(indexName).build());
     }
 
 }

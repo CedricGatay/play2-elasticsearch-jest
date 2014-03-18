@@ -120,6 +120,9 @@ public class JestResultUtils {
         return null;
     }
 
+    /**
+     * Allows elasticSearch and Gson to talk the same language regarding dates (ISO8601 format)
+     */
     public static Gson createGsonWithDateFormat() {
         return new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").create();

@@ -48,12 +48,12 @@ public class JestClientWrapper {
     }
 
     @Nullable
-    public static JestResult jestXcute(final JestRequest jestRequest){
-        return jestXcute(jestRequest.getAction());
+    public static JestResult execute(final JestRequest jestRequest){
+        return execute(jestRequest.getAction());
     }
 
     @Nullable
-    public static JestResult jestXcute(final Action action){
+    public static JestResult execute(final Action action){
         try {
             return IndexClient.client.execute(action);
         } catch (Exception e) {
@@ -63,14 +63,10 @@ public class JestClientWrapper {
     }
     
     
-    public static F.Promise<JestResult> jestXcuteAsync(final Action action){
+    public static F.Promise<JestResult> executeAsync(final Action action){
         return F.Promise.wrap(AsyncUtils.executeAsync(IndexClient.client, action));
     }
 
-    public static JestResult jestXcute(AbstractMultiIndexActionBuilder builder) {
-        return jestXcute(builder.build());
-    }
-    
     public static void log(@Nullable JestResult jestResult, String prefix){
         if (Logger.isDebugEnabled() && jestResult != null) {
             Logger.debug("ElasticSearch : " + prefix + " " + jestResult.getJsonString());

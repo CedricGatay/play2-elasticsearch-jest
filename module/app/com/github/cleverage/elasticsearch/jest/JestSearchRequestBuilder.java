@@ -26,7 +26,6 @@ public class JestSearchRequestBuilder implements JestRequest<Search> {
     @Override
     public Search getAction() {
         final String query = searchSourceBuilder.toString();
-        Logger.debug(" Query => " + query);
         return new Search.Builder(query)
                 .addIndex(indices)
                 .addType(types)
