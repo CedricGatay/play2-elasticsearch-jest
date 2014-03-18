@@ -71,7 +71,7 @@ public class IndexConfig {
     /**
      * Custom settings to apply when creating the index. ex: "{ analysis: { analyzer: { my_analyzer: { type : "custom", tokenizer: "standard" } } } }" 
      */
-    public Map<String, String> indexSettings = new HashMap<String, String>();
+    public Map<String, String> indexSettings = new HashMap<>();
 
     /**
      * list of class extends "Index" ex: myPackage.myClass,myPackage2.*
@@ -81,7 +81,7 @@ public class IndexConfig {
     /**
      * List of IndexType and IndexMapping associate
      */
-    public Map<IndexQueryPath, String> indexMappings = new HashMap<IndexQueryPath, String>();
+    public Map<IndexQueryPath, String> indexMappings = new HashMap<>();
 
     /**
      * Drop the index on application shutdown
@@ -109,7 +109,7 @@ public class IndexConfig {
 
         String indexNameConf = app.configuration().getString("elasticsearch.index.name");
         if(indexNameConf != null) {
-            LinkedList<String> indexNamesL = new LinkedList<String>();
+            LinkedList<String> indexNamesL = new LinkedList<>();
             String[] indexNamesTab = indexNameConf.split(",");
             for (String indexNameElem : indexNamesTab) {
                 String indexNameTmp = indexNameElem.trim();
@@ -146,7 +146,7 @@ public class IndexConfig {
         Set<String> classes = getClazzs();
 
         for (String aClass : classes) {
-            Class<?> klass = null;
+            Class<?> klass;
             try {
                 // Loading class and annotation for set mapping if is present
                 Logger.debug("ElasticSearch : Registering class " + aClass);
@@ -191,7 +191,7 @@ public class IndexConfig {
         }
     }
 
-    private String getIndexName(Object instance, String[] indexNames) {
+    private static String getIndexName(Object instance, String[] indexNames) {
         IndexName indexNameAnnotation = instance.getClass().getAnnotation(IndexName.class);
         if (indexNameAnnotation == null) {
             if(indexNames.length>0) {
@@ -202,7 +202,7 @@ public class IndexConfig {
         return indexNameAnnotation.name();
     }
 
-    private String getIndexType(Object instance) {
+    private static String getIndexType(Object instance) {
         IndexType indexTypeAnnotation = instance.getClass().getAnnotation(IndexType.class);
         if (indexTypeAnnotation == null) {
             return null;
@@ -210,7 +210,7 @@ public class IndexConfig {
         return indexTypeAnnotation.name();
     }
 
-    private String getIndexMapping(Object instance) {
+    private static String getIndexMapping(Object instance) {
         IndexMapping indexMapping = instance.getClass().getAnnotation(IndexMapping.class);
         if (indexMapping == null) {
             return null;
@@ -220,7 +220,7 @@ public class IndexConfig {
 
     private Set<String> getClazzs() {
 
-        Set<String> classes = new HashSet<String>();
+        Set<String> classes = new HashSet<>();
 
         if (indexClazzs != null) {
             String[] toLoad = indexClazzs.split(",");

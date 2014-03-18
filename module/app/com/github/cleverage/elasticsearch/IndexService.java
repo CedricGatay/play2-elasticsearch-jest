@@ -14,12 +14,14 @@ import play.Logger;
 import play.libs.F;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcute;
 import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcuteAsync;
+import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.log;
 
 
 public abstract class IndexService {
@@ -45,18 +47,16 @@ public abstract class IndexService {
      * @param requestBuilder
      * @return
      */
+    @Nullable
     public static JestResult index(JestIndexRequestBuilder requestBuilder) {
-
         JestResult jestResult = jestXcute(requestBuilder);
-
-        if (Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Index " + jestResult.getJsonString());
-        }
+        log(jestResult, "index");
         return jestResult;
     }
 
     /**
      * Create an JestIndexRequestBuilder
+     *
      * @param indexPath
      * @param id
      * @param indexable
@@ -73,11 +73,10 @@ public abstract class IndexService {
      * @param indexable
      * @return
      */
+    @Nullable
     public static JestResult index(IndexQueryPath indexPath, String id, Index indexable) {
         JestResult jestResult = jestXcute(getJestIndexRequestBuilder(indexPath, id, indexable));
-        if (Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Index : " + jestResult.getJsonString());
-        }
+        log(jestResult, "index");
         return jestResult;
     }
 
@@ -94,6 +93,7 @@ public abstract class IndexService {
 
     /**
      * call JestIndexRequestBuilder on asynchronously
+     *
      * @param jestIndexRequestBuilder
      * @return
      */
@@ -103,17 +103,20 @@ public abstract class IndexService {
 
     /**
      * Add a json document to the index
+     *
      * @param indexPath
      * @param id
      * @param json
      * @return
      */
+    @Nullable
     public static JestResult index(IndexQueryPath indexPath, String id, String json) {
         return jestXcute(getJestIndexRequestBuilder(indexPath, id, json));
     }
 
     /**
      * Create an JestIndexRequestBuilder for a Json-encoded object
+     *
      * @param indexPath
      * @param id
      * @param json
@@ -128,6 +131,7 @@ public abstract class IndexService {
 
     /**
      * Create a BulkRequestBuilder for a List of Index objects
+     *
      * @param indexPath
      * @param indexables
      * @return
@@ -142,6 +146,7 @@ public abstract class IndexService {
 
     /**
      * Bulk index a list of indexables
+     *
      * @param indexPath
      * @param indexables
      * @return
@@ -153,6 +158,7 @@ public abstract class IndexService {
 
     /**
      * Bulk index a list of indexables asynchronously
+     *
      * @param indexPath
      * @param indexables
      * @return
@@ -163,6 +169,7 @@ public abstract class IndexService {
 
     /**
      * Create a BulkRequestBuilder for a List of json-encoded objects
+     *
      * @param indexPath
      * @param jsonMap
      * @return
@@ -177,6 +184,7 @@ public abstract class IndexService {
 
     /**
      * Bulk index a list of indexables asynchronously
+     *
      * @param bulkRequestBuilder
      * @return
      */
@@ -186,6 +194,7 @@ public abstract class IndexService {
 
     /**
      * Create a BulkRequestBuilder for a List of JestIndexRequestBuilder
+     *
      * @return
      */
     public static JestBulkRequestBuilder getBulkRequestBuilder(Collection<JestIndexRequestBuilder> JestIndexRequestBuilder) {
@@ -199,6 +208,7 @@ public abstract class IndexService {
     /**
      * Bulk index a Map of json documents.
      * The id of the document is the key of the Map
+     *
      * @param indexPath
      * @param jsonMap
      * @return
@@ -210,6 +220,7 @@ public abstract class IndexService {
 
     /**
      * Create an UpdateRequestBuilder
+     *
      * @param indexPath
      * @param id
      * @return
@@ -223,6 +234,7 @@ public abstract class IndexService {
 
     /**
      * Update a document in the index
+     *
      * @param indexPath
      * @param id
      * @param updateFieldValues The fields and new values for which the update should be done
@@ -238,6 +250,7 @@ public abstract class IndexService {
 
     /**
      * Update a document asynchronously
+     *
      * @param indexPath
      * @param id
      * @param updateFieldValues The fields and new values for which the update should be done
@@ -253,6 +266,7 @@ public abstract class IndexService {
 
     /**
      * Call update asynchronously
+     *
      * @param updateRequestBuilder
      * @return
      */
@@ -262,6 +276,7 @@ public abstract class IndexService {
 
     /**
      * Create a DeleteRequestBuilder
+     *
      * @param indexPath
      * @param id
      * @return
@@ -272,6 +287,7 @@ public abstract class IndexService {
 
     /**
      * Delete element in index asynchronously
+     *
      * @param indexPath
      * @return
      */
@@ -281,21 +297,20 @@ public abstract class IndexService {
 
     /**
      * Delete element in index
+     *
      * @param indexPath
      * @return
      */
+    @Nullable
     public static JestResult delete(IndexQueryPath indexPath, String id) {
         JestResult deleteResponse = jestXcute(getDeleteRequestBuilder(indexPath, id));
-
-        if (Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Delete " + deleteResponse.toString());
-        }
-
+        log(deleteResponse, "delete");
         return deleteResponse;
     }
 
     /**
      * Create a GetRequestBuilder
+     *
      * @param indexPath
      * @param id
      * @return
@@ -306,17 +321,23 @@ public abstract class IndexService {
 
     /**
      * Get the json representation of a document from an id
+     *
      * @param indexPath
      * @param id
      * @return
      */
+    @NotNull
     public static String getAsString(IndexQueryPath indexPath, String id) {
-        return jestXcute(getGetRequestBuilder(indexPath, id)).getJsonString();
+        final JestResult jestResult = jestXcute(getGetRequestBuilder(indexPath, id));
+        if (jestResult != null) {
+            return jestResult.getJsonString();
+        }
+        return "";
     }
 
     @Nullable
     private static <T extends Index> T getTFromGetResponse(Class<T> clazz, JestResult getResponse) {
-        if (!getResponse.isSucceeded()){
+        if (!getResponse.isSucceeded()) {
             return null;
         }
         return new JestResultUtils(getResponse).getFirstHit(clazz);
@@ -336,6 +357,7 @@ public abstract class IndexService {
 
     /**
      * Get Indexable Object for an Id asynchronously
+     *
      * @param indexPath
      * @param clazz
      * @param id
@@ -356,6 +378,7 @@ public abstract class IndexService {
 
     /**
      * Get a reponse for a simple request
+     *
      * @param indexName
      * @param indexType
      * @param id
@@ -367,6 +390,7 @@ public abstract class IndexService {
 
     /**
      * Search information on Index from a query
+     *
      * @param indexQuery
      * @param <T>
      * @return
@@ -377,6 +401,7 @@ public abstract class IndexService {
 
     /**
      * Search asynchronously information on Index from a query
+     *
      * @param indexPath
      * @param indexQuery
      * @param <T>
@@ -390,6 +415,7 @@ public abstract class IndexService {
 
     /**
      * Test if an indice Exists
+     *
      * @return true if exists
      */
     public static boolean existsIndex(String indexName) {
@@ -403,13 +429,13 @@ public abstract class IndexService {
     public static void createIndex(String indexName) {
         Logger.debug("ElasticSearch : creating index [" + indexName + "]");
         final String jsonNode = IndexClient.config.indexSettings.get(indexName);
-        final CreateIndex.Builder builder= new CreateIndex.Builder(indexName);
+        final CreateIndex.Builder builder = new CreateIndex.Builder(indexName);
         if (StringUtils.isNotBlank(jsonNode)) {
             final ImmutableMap<String, String> settings = ImmutableSettings.builder().loadFromSource(jsonNode).build().getAsMap();
             builder.settings(settings);
         }
         final JestResult jestResult = jestXcute(builder.build());
-        Logger.debug("ElasticSearch : Index creation result => " + jestResult.getJsonString());
+        log(jestResult, "index creation result =>");
     }
 
     /**
@@ -432,38 +458,42 @@ public abstract class IndexService {
      * }
      * }
      * }
-     *  @param indexName
+     *
+     * @param indexName
      * @param indexType
      * @param indexMapping
      */
     public static JestResult createMapping(String indexName, String indexType, String indexMapping) {
         Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
         final PutMapping build = new PutMapping.Builder(indexName, indexType, indexMapping).build();
-        final JestResult jestResult = jestXcute(build);
-        return jestResult;
+        return jestXcute(build);
     }
 
     /**
      * Read the Mapping for a type
+     *
      * @param indexType
      * @return
      */
+    @NotNull
     public static String getMapping(String indexName, String indexType) {
         final GetMapping build = new GetMapping.Builder().addIndex(indexName).addType(indexType).build();
-        final String jsonString = jestXcute(build).getJsonString();
-        return jsonString;
+        final JestResult jestResult = jestXcute(build);
+        if (jestResult != null) {
+            return jestResult.getJsonString();
+        }
+        return "";
     }
 
     /**
      * call createMapping for list of @indexType
+     *
      * @param indexName
      */
     public static void prepareIndex(String indexName) {
-
         Map<IndexQueryPath, String> indexMappings = IndexClient.config.indexMappings;
         for (IndexQueryPath indexQueryPath : indexMappings.keySet()) {
-
-            if(indexName != null && indexName.equals(indexQueryPath.index)) {
+            if (indexName != null && indexName.equals(indexQueryPath.index)) {
                 String indexType = indexQueryPath.type;
                 String indexMapping = indexMappings.get(indexQueryPath);
                 if (indexMapping != null) {
@@ -502,6 +532,7 @@ public abstract class IndexService {
 
     /**
      * Refresh an index
+     *
      * @param indexName
      */
     private static void refresh(String indexName) {
@@ -520,6 +551,7 @@ public abstract class IndexService {
 
     /**
      * Flush an index
+     *
      * @param indexName
      */
     public static void flush(String indexName) {

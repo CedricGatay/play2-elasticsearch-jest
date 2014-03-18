@@ -70,4 +70,10 @@ public class JestClientWrapper {
     public static JestResult jestXcute(AbstractMultiIndexActionBuilder builder) {
         return jestXcute(builder.build());
     }
+    
+    public static void log(@Nullable JestResult jestResult, String prefix){
+        if (Logger.isDebugEnabled() && jestResult != null) {
+            Logger.debug("ElasticSearch : " + prefix + " " + jestResult.getJsonString());
+        }
+    }
 }

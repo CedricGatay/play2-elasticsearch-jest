@@ -10,6 +10,7 @@ import io.searchbox.client.JestResult;
 import io.searchbox.core.search.facet.*;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class JestResultUtils {
         FACET_TYPE_CLASSES = tmp.build();
     }
     
-    public JestResultUtils(JestResult result) {
+    public JestResultUtils(@NotNull JestResult result) {
         this.result = result;
     }
 

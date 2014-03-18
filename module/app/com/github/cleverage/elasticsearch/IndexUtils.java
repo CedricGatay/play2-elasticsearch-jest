@@ -1,9 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import play.Logger;
 
@@ -12,9 +9,10 @@ import java.util.*;
 
 public abstract class IndexUtils {
 
+    @SuppressWarnings("unchecked")
     public static <T extends Indexable> List<T> getIndexables(Map map, String key, Class<T> t) {
         List<Map<String, Object>> mapList = (List<Map<String, Object>>) map.get(key);
-        List<T> list = new ArrayList<T>();
+        List<T> list = new ArrayList<>();
         if (mapList != null) {
             for (Map<String, Object> map1 : mapList) {
                 list.add(getIndexable(map1, t));
@@ -28,9 +26,10 @@ public abstract class IndexUtils {
         return getIndexable(map1, t);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends Indexable> T getIndexable(Map map, Class<T> t) {
         T instance = IndexUtils.getInstanceIndexable(t);
-        return (T) instance.fromIndex((Map) map);
+        return (T) instance.fromIndex(map);
     }
 
     /**
@@ -40,8 +39,9 @@ public abstract class IndexUtils {
      * @param <T>
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static <T extends Indexable> List<Map<String, Object>> toIndex(List<T> listT) {
-        List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> mapList = new ArrayList<>();
         for (T t : listT) {
             mapList.add(t.toIndex());
         }
@@ -53,9 +53,7 @@ public abstract class IndexUtils {
         T object = null;
         try {
             object = clazz.newInstance();
-        } catch (InstantiationException e) {
-            Logger.error("...", e);
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             Logger.error("...", e);
         }
         return object;
@@ -65,9 +63,7 @@ public abstract class IndexUtils {
         T object = null;
         try {
             object = clazz.newInstance();
-        } catch (InstantiationException e) {
-            Logger.error("...", e);
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             Logger.error("...", e);
         }
         return object;
@@ -99,7 +95,7 @@ public abstract class IndexUtils {
         }
         else if (targetType.equals(Integer.class)) {
             if (value instanceof Number) {
-                return Integer.valueOf(((Number) value).intValue());
+                return ((Number) value).intValue();
             }
             else {
                 return Integer.valueOf(value.toString());
@@ -107,7 +103,7 @@ public abstract class IndexUtils {
         }
         else if (targetType.equals(Long.class)) {
             if (value instanceof Number) {
-                return Long.valueOf(((Number) value).longValue());
+                return ((Number) value).longValue();
             }
             else {
                 return Long.valueOf(value.toString());
@@ -115,7 +111,7 @@ public abstract class IndexUtils {
         }
         else if (targetType.equals(Double.class)) {
             if (value instanceof Number) {
-                return Double.valueOf(((Number) value).doubleValue());
+                return ((Number) value).doubleValue();
             }
             else {
                 return Double.valueOf(value.toString());
@@ -123,7 +119,7 @@ public abstract class IndexUtils {
         }
         else if (targetType.equals(Float.class)) {
             if (value instanceof Number) {
-                return Float.valueOf(((Number) value).floatValue());
+                return ((Number) value).floatValue();
             }
             else {
                 return Float.valueOf(value.toString());
@@ -151,13 +147,13 @@ public abstract class IndexUtils {
         Date date = null;
         if (value != null && !"".equals(value)) {
             if (value instanceof Long) {
-                date = new Date(((Long) value).longValue());
+                date = new Date((Long) value);
 
             } else if (value instanceof String) {
                 String val = (String) value;
                 int dateLength = String.valueOf(Long.MAX_VALUE).length();
                 if (dateLength == val.length()) {
-                    date = new Date(Long.valueOf(val).longValue());
+                    date = new Date(Long.valueOf(val));
                 } else {
                     date = getDate(val);
                 }

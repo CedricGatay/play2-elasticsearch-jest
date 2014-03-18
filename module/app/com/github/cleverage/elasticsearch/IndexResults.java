@@ -1,7 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
 import io.searchbox.core.search.facet.Facet;
-import org.elasticsearch.search.facet.Facets;
 
 import java.util.List;
 

@@ -18,6 +18,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import play.Logger;
 import play.libs.F;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -43,8 +44,8 @@ public class IndexQuery<T extends Index> {
      */
     private QueryBuilder builder = QueryBuilders.matchAllQuery();
     private String query = null;
-    private List<FacetBuilder> facets = new ArrayList<FacetBuilder>();
-    private List<SortBuilder> sorts = new ArrayList<SortBuilder>();
+    private List<FacetBuilder> facets = new ArrayList<>();
+    private List<SortBuilder> sorts = new ArrayList<>();
 
     private int from = -1;
     private int size = -1;
@@ -73,8 +74,7 @@ public class IndexQuery<T extends Index> {
     /**
      * Sets from
      *
-     * @param from
-     *            record index to start from
+     * @param from record index to start from
      * @return self
      */
     public IndexQuery<T> from(int from) {
@@ -86,8 +86,7 @@ public class IndexQuery<T extends Index> {
     /**
      * Sets fetch size
      *
-     * @param size
-     *            the fetch size
+     * @param size the fetch size
      * @return self
      */
     public IndexQuery<T> size(int size) {
@@ -105,8 +104,7 @@ public class IndexQuery<T extends Index> {
     /**
      * Adds a facet
      *
-     * @param facet
-     *            the facet
+     * @param facet the facet
      * @return self
      */
     public IndexQuery<T> addFacet(FacetBuilder facet) {
@@ -119,10 +117,8 @@ public class IndexQuery<T extends Index> {
     /**
      * Sorts the result by a specific field
      *
-     * @param field
-     *            the sort field
-     * @param order
-     *            the sort order
+     * @param field the sort field
+     * @param order the sort order
      * @return self
      */
     public IndexQuery<T> addSort(String field, SortOrder order) {
@@ -136,8 +132,7 @@ public class IndexQuery<T extends Index> {
     /**
      * Adds a generic {@link SortBuilder}
      *
-     * @param sort
-     *            the sort searchRequestBuilder
+     * @param sort the sort searchRequestBuilder
      * @return self
      */
     public IndexQuery<T> addSort(SortBuilder sort) {
@@ -149,15 +144,17 @@ public class IndexQuery<T extends Index> {
 
     /**
      * Runs the query
+     *
      * @param indexQueryPath
      * @return
      */
-    public IndexResults<T> fetch(IndexQueryPath indexQueryPath){
+    public IndexResults<T> fetch(IndexQueryPath indexQueryPath) {
         return fetch(indexQueryPath, null);
     }
 
     /**
      * Runs the query with a filter
+     *
      * @param indexQueryPath
      * @param filter
      * @return
@@ -171,6 +168,7 @@ public class IndexQuery<T extends Index> {
 
     /**
      * Runs the query asynchronously
+     *
      * @param indexQueryPath
      * @return
      */
@@ -180,6 +178,7 @@ public class IndexQuery<T extends Index> {
 
     /**
      * Runs the query asynchronously with a filter
+     *
      * @param indexQueryPath
      * @param filter
      * @return
@@ -202,19 +201,17 @@ public class IndexQuery<T extends Index> {
             Logger.debug("ElasticSearch : Response -> " + searchResponse.getJsonString());
         }
 
-        IndexResults<T> searchResults = toSearchResults(searchResponse);
-
-        return searchResults;
+        return toSearchResults(searchResponse);
     }
 
-    public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath){
+    public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath) {
         return getSearchRequestBuilder(indexQueryPath, null);
     }
 
     public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath, FilterBuilder filter) {
 
         // Build request
-            JestSearchRequestBuilder request = new JestSearchRequestBuilder()
+        JestSearchRequestBuilder request = new JestSearchRequestBuilder()
                 .setIndices(indexQueryPath.index)
                 .setTypes(indexQueryPath.type)
                 .setSearchType(io.searchbox.params.SearchType.QUERY_THEN_FETCH)
@@ -223,14 +220,12 @@ public class IndexQuery<T extends Index> {
         // set Query
         if (StringUtils.isNotBlank(query)) {
             request.setQuery(query);
-        }
-        else
-        {
+        } else {
             request.setQuery(builder);
         }
 
         // set no Fields -> only return id and type
-        if(noField) {
+        if (noField) {
             request.setNoFields();
         }
 
@@ -260,54 +255,46 @@ public class IndexQuery<T extends Index> {
         if (IndexClient.config.showRequest) {
             if (StringUtils.isNotBlank(query)) {
                 Logger.debug("ElasticSearch : Query -> " + query);
-            }
-            else
-            {
-                Logger.debug("ElasticSearch : Query -> "+ builder.toString());
+            } else {
+                Logger.debug("ElasticSearch : Query -> " + builder.toString());
             }
         }
         return request;
     }
 
-    private IndexResults<T> toSearchResults(JestResult searchResponse) {
-        final JestResultUtils jestResultUtils = new JestResultUtils(searchResponse);
-        // Get Total Records Found
-        long count = jestResultUtils.getTotalHits();
-        
-        // Get Facets
-        List<Facet> facetsResponse = jestResultUtils.getFacets();
-
-        // Get List results
+    private IndexResults<T> toSearchResults(@Nullable JestResult searchResponse) {
+        long count = 0;
+        List<Facet> facetsResponse = Lists.newArrayList();
         List<T> results = Lists.newArrayList();
-        // Loop on each one
-        for (JestResultUtils.Result h : jestResultUtils.getHits()) {
-            results.add(h.getObject(clazz));
+        if (searchResponse != null) {
+            final JestResultUtils jestResultUtils = new JestResultUtils(searchResponse);
+            count = jestResultUtils.getTotalHits();
+            facetsResponse = jestResultUtils.getFacets();
+            for (JestResultUtils.Result h : jestResultUtils.getHits()) {
+                results.add(h.getObject(clazz));
+            }
+            if (Logger.isDebugEnabled()) {
+                Logger.debug("ElasticSearch : Results -> " + Joiner.on(",").join(results));
+            }
         }
-
-        if(Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Results -> " + Joiner.on(",").join(results));
-        }
-
-        // pagination
         long pageSize = 10;
         if (size > -1) {
             pageSize = size;
         }
 
         long pageCurrent = 1;
-        if(from > 0) {
-            pageCurrent = ((int) (from / pageSize))+1;
+        if (from > 0) {
+            pageCurrent = ((int) (from / pageSize)) + 1;
         }
 
         long pageNb;
         if (pageSize == 0) {
             pageNb = 1;
         } else {
-            pageNb = (long)Math.ceil(new BigDecimal(count).divide(new BigDecimal(pageSize), 2, RoundingMode.HALF_UP).doubleValue());
+            pageNb = (long) Math.ceil(new BigDecimal(count).divide(new BigDecimal(pageSize), 2, RoundingMode.HALF_UP).doubleValue());
         }
 
-        // Return Results
-        return new IndexResults<T>(count, pageSize, pageCurrent, pageNb, results, facetsResponse);
+        return new IndexResults<>(count, pageSize, pageCurrent, pageNb, results, facetsResponse);
     }
 
 }

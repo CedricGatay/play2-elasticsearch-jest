@@ -3,13 +3,10 @@ package com.github.cleverage.elasticsearch;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.searchbox.annotations.JestId;
 import io.searchbox.client.JestResult;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.search.SearchHit;
 
-import play.Logger;
 import play.libs.F;
 
 import com.github.cleverage.elasticsearch.annotations.IndexName;
@@ -37,7 +34,7 @@ public abstract class Index implements Indexable {
 
         IndexType indexTypeAnnotation = this.getClass().getAnnotation(IndexType.class);
         if(indexTypeAnnotation == null) {
-            Logger.error("ElasticSearch : Class " + this.getClass().getCanonicalName() + " no contain @IndexType(name) annotation ");
+            throw new ElasticSearchException("ElasticSearch : Class " + this.getClass().getCanonicalName() + " no contain @IndexType(name) annotation ");
         }
         String indexType = indexTypeAnnotation.name();
 
@@ -155,7 +152,7 @@ public abstract class Index implements Indexable {
     public static class Finder<T extends Index> {
 
         private final Class<T> type;
-        private IndexQueryPath queryPath;
+        private final IndexQueryPath queryPath;
 
         /**
          * Creates a finder for document of type <code>T</code>
@@ -182,7 +179,7 @@ public abstract class Index implements Indexable {
          * @return
          */
         public IndexQuery<T> query() {
-            return new IndexQuery<T>(type);
+            return new IndexQuery<>(type);
         }
 
         /**

@@ -23,7 +23,7 @@ public class JestBulkRequestBuilder implements JestRequest<Bulk>{
     private TimeValue timeout = TimeValue.timeValueMinutes(1);
 
     public JestBulkRequestBuilder() {
-        actionList = new ArrayList<BulkableAction>();
+        actionList = new ArrayList<>();
     }
 
     /**
