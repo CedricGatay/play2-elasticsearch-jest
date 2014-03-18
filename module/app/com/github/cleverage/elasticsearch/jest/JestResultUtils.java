@@ -132,7 +132,7 @@ public class JestResultUtils {
         private final String index;
         private final String type;
         private final String id;
-        private final Float score;
+        private Float score;
         private final JsonObject source;
         private transient Index convertedObject = null;
 
@@ -140,7 +140,12 @@ public class JestResultUtils {
             this.index = resultLine.get("_index").getAsString();
             this.type = resultLine.get("_type").getAsString();
             this.id = resultLine.get("_id").getAsString();
-            this.score = resultLine.has("_score") ? resultLine.get("_score").getAsFloat() : 1.0f;
+            final JsonElement scoreElement = resultLine.get("_score");
+            try {
+                this.score = resultLine.has("_score") ? scoreElement.getAsFloat() : 1.0f;
+            } catch (Exception e) {
+                this.score=1.0f;
+            }
             this.source = resultLine.get("_source").getAsJsonObject();
         }
         

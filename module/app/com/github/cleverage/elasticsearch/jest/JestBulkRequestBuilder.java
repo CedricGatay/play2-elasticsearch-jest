@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * @author cgatay
  */
-public class JestBulkRequestBuilder implements JestRequest<Bulk>{
+public class JestBulkRequestBuilder extends JestRequest<Bulk>{
 
 
     private final List<BulkableAction> actionList;

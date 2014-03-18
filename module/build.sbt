@@ -5,7 +5,7 @@ import xerial.sbt.Sonatype._
 
 name := "play2-elasticsearch"
 
-version := "0.8-jest"
+version := "0.8.1-jest"
 
 libraryDependencies ++= Seq(
   javaCore,

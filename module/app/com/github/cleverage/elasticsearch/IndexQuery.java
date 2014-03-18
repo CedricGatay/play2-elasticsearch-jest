@@ -1,6 +1,5 @@
 package com.github.cleverage.elasticsearch;
 
-import com.github.cleverage.elasticsearch.jest.JestClientWrapper;
 import com.github.cleverage.elasticsearch.jest.JestResultUtils;
 import com.github.cleverage.elasticsearch.jest.JestSearchRequestBuilder;
 import com.google.common.base.Joiner;
@@ -24,8 +23,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.executeAsync;
 
 /**
  * An ElasticSearch query
@@ -184,7 +181,7 @@ public class IndexQuery<T extends Index> {
      * @return
      */
     public F.Promise<IndexResults<T>> fetchAsync(final IndexQueryPath indexQueryPath, final FilterBuilder filter) {
-        final F.Promise<JestResult> jestResultPromise = executeAsync(getSearchRequestBuilder(indexQueryPath, filter).getAction());
+        final F.Promise<JestResult> jestResultPromise = getSearchRequestBuilder(indexQueryPath, filter).executeAsync();
         return jestResultPromise.map(new F.Function<JestResult, IndexResults<T>>() {
             @Override
             public IndexResults<T> apply(JestResult jestResult) throws Throwable {
@@ -195,7 +192,7 @@ public class IndexQuery<T extends Index> {
 
     public IndexResults<T> executeSearchRequest(JestSearchRequestBuilder request) {
 
-        JestResult searchResponse = JestClientWrapper.execute(request);
+        JestResult searchResponse = request.execute();
 
         if (IndexClient.config.showRequest && searchResponse != null) {
             Logger.debug("ElasticSearch : Response -> " + searchResponse.getJsonString());
@@ -208,7 +205,11 @@ public class IndexQuery<T extends Index> {
         return getSearchRequestBuilder(indexQueryPath, null);
     }
 
-    public JestSearchRequestBuilder getSearchRequestBuilder(IndexQueryPath indexQueryPath, FilterBuilder filter) {
+    public JestSearchRequestBuilder getSearchRequestBuilder(FilterBuilder filter) {
+        return getSearchRequestBuilder(null, filter);
+    }
+
+    public JestSearchRequestBuilder getSearchRequestBuilder(@Nullable IndexQueryPath indexQueryPath, FilterBuilder filter) {
 
         // Build request
         JestSearchRequestBuilder request = new JestSearchRequestBuilder()

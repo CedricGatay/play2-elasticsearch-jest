@@ -5,7 +5,7 @@ import io.searchbox.core.Index;
 /**
  * @author cgatay
  */
-public class JestIndexRequestBuilder implements JestRequest<Index> {
+public class JestIndexRequestBuilder extends JestRequest<Index> {
     private final String index;
     private String type;
     private String id;

@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * @author cgatay
  */
-public class JestUpdateRequestBuilder implements JestRequest<Update>{
+public class JestUpdateRequestBuilder extends JestRequest<Update>{
     private final String index;
     private String type;
     private String id;

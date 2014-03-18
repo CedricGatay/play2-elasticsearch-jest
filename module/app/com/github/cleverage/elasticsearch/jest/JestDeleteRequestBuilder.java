@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 /**
  * @author cgatay
  */
-public class JestDeleteRequestBuilder implements JestRequest<Delete>{
+public class JestDeleteRequestBuilder extends JestRequest<Delete>{
     private final String index;
     private String type;
     private String id;

@@ -5,7 +5,7 @@ import io.searchbox.core.Get;
 /**
  * @author cgatay
  */
-public class JestGetRequestBuilder implements JestRequest<Get>{
+public class JestGetRequestBuilder extends JestRequest<Get>{
     private final String index;
     private final String type;
     private final String id;

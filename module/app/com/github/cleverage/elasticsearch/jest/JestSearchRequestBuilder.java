@@ -12,7 +12,7 @@ import play.Logger;
 /**
  * @author cgatay
  */
-public class JestSearchRequestBuilder implements JestRequest<Search> {
+public class JestSearchRequestBuilder extends JestRequest<Search> {
 
     private SearchSourceBuilder searchSourceBuilder;
     private String indices;
