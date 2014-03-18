@@ -1,28 +1,18 @@
 package com.github.cleverage.elasticsearch;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.gson.JsonObject;
 import io.searchbox.client.JestResult;
-import com.github.cleverage.elasticsearch.JestResultUtils;
 import io.searchbox.core.search.facet.Facet;
-import io.searchbox.core.search.facet.GeoDistanceFacet;
-import io.searchbox.core.search.facet.QueryFacet;
-import io.searchbox.core.search.facet.TermsFacet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.lucene.util.CollectionUtil;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.facet.FacetBuilder;
-import org.elasticsearch.search.facet.Facets;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.util.CollectionUtils;
 import play.Logger;
 import play.libs.F;
 
@@ -30,10 +20,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcute;
-import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcuteAsync;
+import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcute;
+import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcuteAsync;
 
 /**
  * An ElasticSearch query
@@ -294,7 +283,7 @@ public class IndexQuery<T extends Index> {
         }
 
         if(Logger.isDebugEnabled()) {
-            Logger.debug("ElasticSearch : Results -> "+ results.toString());
+            Logger.debug("ElasticSearch : Results -> " + Joiner.on(",").join(results));
         }
 
         // pagination

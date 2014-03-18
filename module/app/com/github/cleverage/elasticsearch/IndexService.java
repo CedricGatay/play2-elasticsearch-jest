@@ -1,44 +1,24 @@
 package com.github.cleverage.elasticsearch;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.searchbox.client.JestResult;
-import com.github.cleverage.elasticsearch.JestResultUtils;
-import io.searchbox.core.Delete;
-import io.searchbox.core.Percolate;
 import io.searchbox.indices.*;
 import io.searchbox.indices.mapping.GetMapping;
 import io.searchbox.indices.mapping.PutMapping;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.update.UpdateRequestBuilder;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.Requests;
-import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.common.collect.ImmutableMap;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.percolator.PercolatorService;
 import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.indices.IndexMissingException;
 import play.Logger;
 import play.libs.F;
-import play.libs.Json;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcute;
-import static com.github.cleverage.elasticsearch.JestClientConfig.jestXcuteAsync;
+import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcute;
+import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcuteAsync;
 
 
 public abstract class IndexService {
@@ -459,7 +439,6 @@ public abstract class IndexService {
         Logger.debug("ElasticSearch : creating mapping [" + indexName + "/" + indexType + "] :  " + indexMapping);
         final PutMapping build = new PutMapping.Builder(indexName, indexType, indexMapping).build();
         final JestResult jestResult = jestXcute(build);
-        Logger.debug("createMapping =>" + jestResult.getJsonString());
         return jestResult;
     }
 
@@ -471,7 +450,6 @@ public abstract class IndexService {
     public static String getMapping(String indexName, String indexType) {
         final GetMapping build = new GetMapping.Builder().addIndex(indexName).addType(indexType).build();
         final String jsonString = jestXcute(build).getJsonString();
-        Logger.debug("GetMapping => " + jsonString);
         return jsonString;
     }
 

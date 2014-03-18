@@ -4,6 +4,8 @@ import com.github.cleverage.elasticsearch.annotations.IndexMapping;
 import com.github.cleverage.elasticsearch.annotations.IndexName;
 import com.github.cleverage.elasticsearch.annotations.IndexType;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.SettingsException;
 import org.reflections.Reflections;
 import play.Application;
 import play.Configuration;
@@ -254,5 +256,56 @@ public class IndexConfig {
                 ", indexMappings=" + indexMappings +
                 ", dropOnShutdown=" + dropOnShutdown +
                 '}';
+    }
+
+    /**
+     * Checks if is local mode.
+     *
+     * @return true, if is local mode
+     */
+    boolean isLocalMode() {
+        try {
+            if (client == null) {
+                return true;
+            }
+            if (client.equalsIgnoreCase("false") || client.equalsIgnoreCase("true")) {
+                return true;
+            }
+
+            return local;
+        } catch (Exception e) {
+            Logger.error("Error! Starting in Local Model: %s", e);
+            return true;
+        }
+    }
+
+    /**
+     * Load settings from resource file
+     *
+     * @return
+     * @throws Exception
+     */
+    ImmutableSettings.Builder loadSettings() throws Exception {
+        ImmutableSettings.Builder settings = ImmutableSettings.settingsBuilder();
+
+        // set default settings
+        settings.put("client.transport.sniff", sniffing);
+        if (clusterName != null) {
+            settings.put("cluster.name", clusterName);
+        }
+
+        // load settings
+        if (localConfig != null) {
+            Logger.debug("Elasticsearch : Load settings from " + localConfig);
+            try {
+                settings.loadFromClasspath(localConfig);
+            } catch (SettingsException settingsException) {
+                Logger.error("Elasticsearch : Error when loading settings from " + localConfig);
+                throw new Exception(settingsException);
+            }
+        }
+        settings.build();
+        Logger.info("Elasticsearch : Settings  " + settings.internalMap().toString());
+        return settings;
     }
 }

@@ -1,5 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
@@ -172,6 +173,16 @@ public class JestResultUtils {
             }
             return (T)convertedObject;
         }
-        
+
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("source", source)
+                    .add("score", score)
+                    .add("id", id)
+                    .add("type", type)
+                    .add("index", index)
+                    .toString();
+        }
     }
 }

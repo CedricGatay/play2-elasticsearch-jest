@@ -1,43 +1,39 @@
 package com.github.cleverage.elasticsearch;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import io.searchbox.AbstractMultiIndexActionBuilder;
 import io.searchbox.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.JestResult;
-import com.github.cleverage.elasticsearch.JestResultUtils;
 import io.searchbox.client.config.HttpClientConfig;
+import play.Logger;
 import play.libs.F;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class JestClientConfig  {
-    public static JestClient jestClient() throws Exception {
+import static io.searchbox.client.config.HttpClientConfig.Builder;
 
-        String connectionUrl;
+public class JestClientWrapper {
+    public static JestClient jestClient(IndexConfig config) throws Exception {
 
-        if (System.getenv("SEARCHBOX_URL") != null) {
-            // Heroku
-            connectionUrl = System.getenv("SEARCHBOX_URL");
-
-        } else if (System.getenv("VCAP_SERVICES") != null) {
-            // CloudFoundry
-            Map result = new ObjectMapper().readValue(System.getenv("VCAP_SERVICES"), HashMap.class);
-            connectionUrl = (String) ((Map) ((Map) ((List)
-                    result.get("searchly-n/a")).get(0)).get("credentials")).get("uri");
-        } else {
-            // generic or CloudBees
-//            connectionUrl = http://site:your-api-key@api.searchbox.io";
-            connectionUrl = "http://localhost:9200";
+        final List<String> connectionUrls = Lists.newArrayList();
+        if (config.isLocalMode()){
+            connectionUrls.add("http://localhost:9200");
+        }else{
+            final String[] urlChunks = config.client.split(",");
+            for (String urlChunk : urlChunks) {
+                if (!urlChunk.startsWith("http")){
+                    connectionUrls.add("http://" + urlChunk);      
+                }else{
+                    connectionUrls.add(urlChunk);
+                }
+            }
         }
-
-        // Configuration
-        final HttpClientConfig.Builder builder = new HttpClientConfig.Builder(connectionUrl).multiThreaded(true);
+        final Builder builder = new Builder(connectionUrls)
+                .multiThreaded(true);
         
         builder.gson(JestResultUtils.createGsonWithDateFormat());
         HttpClientConfig clientConfig = builder.build();
@@ -58,7 +54,7 @@ public class JestClientConfig  {
         try {
             return IndexClient.client.execute(action);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error("ElasticSearch : Unable to execute request {}", e);
         }
         return null;
     }
