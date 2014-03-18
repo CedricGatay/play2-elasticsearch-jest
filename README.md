@@ -3,7 +3,7 @@
 
 This module provides an easy [Elasticsearch](http://www.elasticsearch.org/) integration in a [Playframework](http://www.playframework.com/) 2 application
 
-This module relies on Jest integration to allow querying of ElasticSearch index over HTTP through its REST api. It is heavily based on [play2-elasticsearch from clever-age](https://github.com/cleverage/play2-elasticsearch) (thanks for the work !).
+This module relies on [Jest](https://github.com/searchbox-io/Jest) integration to allow querying of ElasticSearch index over HTTP through its REST api. It is heavily based on [play2-elasticsearch from clever-age](https://github.com/cleverage/play2-elasticsearch) (thanks for the work !).
 
 While classes can look similar to the one in the original plugin, a lot of method signatures have changed due to the use of another querying library. So it is **not** a simple drop-in replacement !
 
@@ -34,7 +34,7 @@ Releases are published on maven-central, so you don't have to define any specifi
 The Play2-elasticsearch module requires its plugin class to be declared in the `conf/play.plugins` file. If this file doesn't exist (it's not created by default when you create a new project),
 just create it in the conf directory first, and then add
 ```
-9000:com.codetroopers.play.elasticsearch.IndexPlugin
+9000:com.codetroopers.play.elasticsearch.plugin.IndexPlugin
 ```
 
 ## Configuration
@@ -62,8 +62,22 @@ elasticsearch.index.clazzs="indexing.*"
 ## show request & result json of search request in log (it will be logged using Logger.debug())
 elasticsearch.index.show_request=true
 ```
+
+## Usage
+There is two ways of using this plugin : 
+ * call `IndexQuery.*` or `IndexService.*` methods
+ * create your own Jest `Action` through the correct `Builder` (for example : `new DeleteByQuery.Builder()`) and then call `JestClientWrapper.execute(yourAction)`
+
+## What needs to be done
+ * A lot of improvements in the API can be done (needs to find out whether Jest*RequestBuilder are useful or not)
+ * Add better return types (`JestRichResult` is incomplete) 
+ * Percolate API is missing in `IndexService` (accessible via Jest `Builder`)
+ * A lot of tests are missing
+
 ## Authors
 http://twitter.com/Cedric_Gatay
+
+Original work from http://twitter.com/nboire & http://twitter.com/mguillermin
 
 ## License
 This code is released under the MIT License

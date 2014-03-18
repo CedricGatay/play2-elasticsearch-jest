@@ -1,16 +1,11 @@
-*.class
-
-# Package Files #
-*.jar
-*.war
-*.ear
-
-.DS_Store
-.idea
-.settings
+logs
+project/project
+project/target
+target
+tmp
+.history
+dist
+data
 *.iml
-*.ipr
-*.iws
-copyreleases.sh
-javadoc
-out
+.idea
+.idea_modules
