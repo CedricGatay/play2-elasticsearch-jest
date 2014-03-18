@@ -1,35 +1,18 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
-import io.searchbox.client.JestResult;
-import io.searchbox.client.JestResultHandler;
 import io.searchbox.core.Search;
 import io.searchbox.params.SearchType;
-import org.elasticsearch.action.ActionListener;
-import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.support.PlainListenableActionFuture;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.facet.FacetBuilder;
-import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.threadpool.ThreadPool;
 import play.Logger;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author cgatay
  */
-class JestSearchRequestBuilder implements JestRequest<Search> {
+public class JestSearchRequestBuilder implements JestRequest<Search> {
 
     private SearchSourceBuilder searchSourceBuilder;
     private String indices;

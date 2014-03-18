@@ -1,8 +1,6 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
-import io.searchbox.client.JestResult;
 import io.searchbox.core.Delete;
-import io.searchbox.core.Get;
 import org.elasticsearch.index.VersionType;
 
 import javax.annotation.Nullable;
@@ -10,7 +8,7 @@ import javax.annotation.Nullable;
 /**
  * @author cgatay
  */
-class JestDeleteRequestBuilder implements JestRequest<Delete>{
+public class JestDeleteRequestBuilder implements JestRequest<Delete>{
     private final String index;
     private String type;
     private String id;

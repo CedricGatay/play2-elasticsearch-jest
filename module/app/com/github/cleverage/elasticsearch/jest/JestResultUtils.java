@@ -1,5 +1,7 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
+import com.github.cleverage.elasticsearch.Index;
+import com.github.cleverage.elasticsearch.IndexUtils;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

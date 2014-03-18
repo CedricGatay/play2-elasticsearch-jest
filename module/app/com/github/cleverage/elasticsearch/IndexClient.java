@@ -1,5 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
+import com.github.cleverage.elasticsearch.jest.JestClientWrapper;
 import io.searchbox.client.JestClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.node.NodeBuilder;

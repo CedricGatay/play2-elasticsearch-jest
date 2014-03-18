@@ -1,28 +1,19 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
-import io.searchbox.Action;
 import io.searchbox.BulkableAction;
-import io.searchbox.client.JestResult;
 import io.searchbox.core.Bulk;
-import io.searchbox.core.Get;
 import org.elasticsearch.action.WriteConsistencyLevel;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.support.replication.ReplicationType;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.common.unit.TimeValue;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author cgatay
  */
-class JestBulkRequestBuilder implements JestRequest<Bulk>{
+public class JestBulkRequestBuilder implements JestRequest<Bulk>{
 
 
     private final List<BulkableAction> actionList;

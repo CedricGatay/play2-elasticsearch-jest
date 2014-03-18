@@ -1,24 +1,18 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.searchbox.client.JestResult;
-import io.searchbox.core.Get;
 import io.searchbox.core.Update;
-import org.elasticsearch.action.WriteConsistencyLevel;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.support.replication.ReplicationType;
-import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 import play.libs.Json;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
  * @author cgatay
  */
-class JestUpdateRequestBuilder implements JestRequest<Update>{
+public class JestUpdateRequestBuilder implements JestRequest<Update>{
     private final String index;
     private String type;
     private String id;

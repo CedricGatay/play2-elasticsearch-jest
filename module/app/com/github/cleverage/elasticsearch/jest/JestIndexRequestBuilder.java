@@ -1,19 +1,11 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
-import io.searchbox.client.JestResult;
 import io.searchbox.core.Index;
-import org.elasticsearch.action.ActionListener;
-import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.index.IndexResponse;
-
-import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * @author cgatay
  */
-class JestIndexRequestBuilder implements JestRequest<Index> {
+public class JestIndexRequestBuilder implements JestRequest<Index> {
     private final String index;
     private String type;
     private String id;

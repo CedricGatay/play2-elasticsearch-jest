@@ -1,5 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
+import com.github.cleverage.elasticsearch.jest.*;
 import io.searchbox.client.JestResult;
 import io.searchbox.indices.*;
 import io.searchbox.indices.mapping.GetMapping;
@@ -17,8 +18,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcute;
-import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcuteAsync;
+import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcute;
+import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcuteAsync;
 
 
 public abstract class IndexService {

@@ -1,4 +1,4 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
 import io.searchbox.Action;
 

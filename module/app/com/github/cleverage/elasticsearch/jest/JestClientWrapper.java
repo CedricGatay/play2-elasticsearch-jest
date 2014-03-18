@@ -1,6 +1,9 @@
-package com.github.cleverage.elasticsearch;
+package com.github.cleverage.elasticsearch.jest;
 
 
+import com.github.cleverage.elasticsearch.AsyncUtils;
+import com.github.cleverage.elasticsearch.IndexClient;
+import com.github.cleverage.elasticsearch.IndexConfig;
 import com.google.common.collect.Lists;
 import io.searchbox.AbstractMultiIndexActionBuilder;
 import io.searchbox.Action;

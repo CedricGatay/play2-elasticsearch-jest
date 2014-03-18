@@ -1,5 +1,7 @@
 package com.github.cleverage.elasticsearch;
 
+import com.github.cleverage.elasticsearch.jest.JestResultUtils;
+import com.github.cleverage.elasticsearch.jest.JestSearchRequestBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import io.searchbox.client.JestResult;
@@ -21,8 +23,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcute;
-import static com.github.cleverage.elasticsearch.JestClientWrapper.jestXcuteAsync;
+import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcute;
+import static com.github.cleverage.elasticsearch.jest.JestClientWrapper.jestXcuteAsync;
 
 /**
  * An ElasticSearch query

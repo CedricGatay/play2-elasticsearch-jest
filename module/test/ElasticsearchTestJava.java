@@ -1,4 +1,5 @@
 import com.github.cleverage.elasticsearch.*;
+import com.github.cleverage.elasticsearch.jest.JestResultUtils;
 import indextype.Index1Type1;
 import indextype.Index2Type1;
 import io.searchbox.client.JestResult;

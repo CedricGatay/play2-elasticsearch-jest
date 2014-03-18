@@ -263,7 +263,7 @@ public class IndexConfig {
      *
      * @return true, if is local mode
      */
-    boolean isLocalMode() {
+    public boolean isLocalMode() {
         try {
             if (client == null) {
                 return true;
