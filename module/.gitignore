@@ -6,3 +6,6 @@ tmp
 .history
 dist
 data
+*.iml
+.idea
+.idea_modules

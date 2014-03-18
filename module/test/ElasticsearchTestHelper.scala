@@ -1,4 +1,4 @@
-import com.github.cleverage.elasticsearch.IndexClient
+import com.codetroopers.play.elasticsearch.IndexClient
 import org.elasticsearch.client.Requests
 import scala.collection.JavaConverters._
 import play.api.test.FakeApplication
@@ -28,7 +28,7 @@ trait ElasticsearchTestHelper {
   )
 
   val additionalPlugins = Seq(
-    "com.github.cleverage.elasticsearch.plugin.IndexPlugin"
+    "com.codetroopers.play.elasticsearch.plugin.IndexPlugin"
   )
 
   def esFakeApp(): FakeApplication = esFakeApp(Map[String, AnyRef]())

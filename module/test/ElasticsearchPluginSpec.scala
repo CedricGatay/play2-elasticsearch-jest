@@ -1,4 +1,4 @@
-import com.github.cleverage.elasticsearch.{IndexService, IndexClient}
+import com.codetroopers.play.elasticsearch.{IndexService, IndexClient}
 import org.specs2.mutable.Specification
 import play.api.test.Helpers._
 

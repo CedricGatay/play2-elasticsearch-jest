@@ -1,5 +1,5 @@
-import com.github.cleverage.elasticsearch.Index;
-import com.github.cleverage.elasticsearch.Indexable;
+import com.codetroopers.play.elasticsearch.Index;
+import com.codetroopers.play.elasticsearch.Indexable;
 
 import java.util.HashMap;
 import java.util.Map;

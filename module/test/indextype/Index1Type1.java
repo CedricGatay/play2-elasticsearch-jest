@@ -1,11 +1,11 @@
 package indextype;
 
-import com.github.cleverage.elasticsearch.Index;
-import com.github.cleverage.elasticsearch.IndexUtils;
-import com.github.cleverage.elasticsearch.Indexable;
-import com.github.cleverage.elasticsearch.annotations.IndexMapping;
-import com.github.cleverage.elasticsearch.annotations.IndexName;
-import com.github.cleverage.elasticsearch.annotations.IndexType;
+import com.codetroopers.play.elasticsearch.Index;
+import com.codetroopers.play.elasticsearch.IndexUtils;
+import com.codetroopers.play.elasticsearch.Indexable;
+import com.codetroopers.play.elasticsearch.annotations.IndexMapping;
+import com.codetroopers.play.elasticsearch.annotations.IndexName;
+import com.codetroopers.play.elasticsearch.annotations.IndexType;
 import org.elasticsearch.common.geo.GeoPoint;
 
 import java.util.Date;

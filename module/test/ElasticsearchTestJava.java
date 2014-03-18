@@ -1,8 +1,7 @@
-import com.github.cleverage.elasticsearch.*;
-import com.github.cleverage.elasticsearch.jest.JestRichResult;
+import com.codetroopers.play.elasticsearch.*;
+import com.codetroopers.play.elasticsearch.jest.JestRichResult;
 import indextype.Index1Type1;
 import indextype.Index2Type1;
-import io.searchbox.client.JestResult;
 import org.apache.commons.lang3.time.DateUtils;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
@@ -32,7 +31,7 @@ public class ElasticsearchTestJava {
         additionalConfiguration.put("elasticsearch.index.dropOnShutdown", true);
 
         List<String> additionalPlugin = new ArrayList<String>();
-        additionalPlugin.add("com.github.cleverage.elasticsearch.plugin.IndexPlugin");
+        additionalPlugin.add("com.codetroopers.play.elasticsearch.plugin.IndexPlugin");
 
         return fakeApplication(additionalConfiguration, additionalPlugin);
     }
