@@ -18,12 +18,12 @@ import java.util.Map;
 /**
  * @author cgatay
  */
-public class JestResultUtils {
+public class JestRichResult {
     private static final Gson gson = createGsonWithDateFormat();
     private static final Map<String, Class<? extends Facet>> FACET_TYPE_CLASSES;
-    private final JestResult result;
+    private JestResult result;
 
-    static{
+    static {
         ImmutableMap.Builder<String, Class<? extends Facet>> tmp = ImmutableMap.builder();
         tmp.put(QueryFacet.TYPE.toLowerCase(), QueryFacet.class);
         tmp.put(StatisticalFacet.TYPE.toLowerCase(), StatisticalFacet.class);
@@ -36,21 +36,21 @@ public class JestResultUtils {
         tmp.put(HistogramFacet.TYPE.toLowerCase(), HistogramFacet.class);
         FACET_TYPE_CLASSES = tmp.build();
     }
-    
-    public JestResultUtils(@NotNull JestResult result) {
+
+    public JestRichResult(@Nullable JestResult result) {
         this.result = result;
     }
 
-    public List<Facet> getFacets(){
+    public List<Facet> getFacets() {
         List<Facet> out = Lists.newArrayList();
-        final JsonObject jsonObject = result.getJsonObject();
+        final JsonObject jsonObject = safeResult().getJsonObject();
         if (jsonObject != null) {
             final JsonElement facets = jsonObject.get("facets");
             if (facets != null) {
                 for (Map.Entry<String, JsonElement> facetEntry : ((JsonObject) facets).entrySet()) {
                     JsonObject facet = facetEntry.getValue().getAsJsonObject();
                     final JsonElement jsonElement = facet.get("_type");
-                    if (jsonElement != null){
+                    if (jsonElement != null) {
                         final Class<? extends Facet> facetClazz = FACET_TYPE_CLASSES.get(jsonElement.getAsString().toLowerCase());
 
                         try {
@@ -67,33 +67,23 @@ public class JestResultUtils {
         return out;
     }
 
-    public int getTotalHits(){
-        final JsonElement hits = result.getJsonObject().get("hits");
-        if(hits != null) {
+    public int getTotalHits() {
+        final JsonElement hits = safeResult().getJsonObject().get("hits");
+        if (hits != null) {
             final JsonElement total = hits.getAsJsonObject().get("total");
-            if (total != null){
+            if (total != null) {
                 return total.getAsInt();
             }
         }
         return 0;
     }
 
-/*
- *
- {"took":24,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},
- "hits":{"total":2,"max_score":1.0,
- "hits":[
- {"_index":"index1","_type":"type1","_id":"q04MS2ITT2-GT_T3kdg_FA","_score":1.0, "_source" : {"name":"name1","category":"category","dateCreate":"2014-03-17T12:36:25Z"}},
- {"_index":"index1","_type":"type1","_id":"P-vu7EsVQQmrut7-Q_X79Q","_score":1.0, "_source" : {"name":"name1","category":"category","dateCreate":"2014-03-17T12:36:25Z"}}]
- }
- }
- */
-    public List<Result> getHits(){
+    public List<Result> getHits() {
         List<Result> out = Lists.newArrayList();
-        final JsonElement hits = result.getJsonObject().get("hits");
-        if (hits != null){
+        final JsonElement hits = safeResult().getJsonObject().get("hits");
+        if (hits != null) {
             final JsonElement hitsList = hits.getAsJsonObject().get("hits");
-            if (hitsList != null){
+            if (hitsList != null) {
                 final JsonArray jsonArray = hitsList.getAsJsonArray();
                 for (JsonElement jsonElement : jsonArray) {
                     out.add(new Result(jsonElement.getAsJsonObject()));
@@ -105,30 +95,81 @@ public class JestResultUtils {
 
     @Nullable
     public <T extends Index> T getFirstHit(Class<T> clazz) {
-        if (result.isSucceeded()){
-            return new Result(result.getJsonObject()).getObject(clazz);
+        if (safeResult().isSucceeded()) {
+            return new Result(safeResult().getJsonObject()).getObject(clazz);
         }
         return null;
     }
 
     @Nullable
-    public String getId(){
-        final JsonObject jsonObject = result.getJsonObject();
+    public String getId() {
+        final JsonObject jsonObject = safeResult().getJsonObject();
         if (jsonObject.has("_id")) {
             return jsonObject.get("_id").getAsString();
         }
         return null;
     }
 
+    @NotNull
+    public JestResult getResult() {
+        return safeResult();
+    }
+
+
+    public String getPathToResult() {
+        return safeResult().getPathToResult();
+    }
+
+    public String getJsonString() {
+        return safeResult().getJsonString();
+    }
+
+    public Object getValue(String key) {
+        return safeResult().getValue(key);
+    }
+
+    public <T extends Facet> List<T> getFacets(Class<T> type) {
+        return safeResult().getFacets(type);
+    }
+
+    public boolean isSucceeded() {
+        return safeResult().isSucceeded();
+    }
+
+    public <T> List<T> getSourceAsObjectList(Class<T> type) {
+        return safeResult().getSourceAsObjectList(type);
+    }
+
+    public String getErrorMessage() {
+        return safeResult().getErrorMessage();
+    }
+
+    public JsonObject getJsonObject() {
+        return safeResult().getJsonObject();
+    }
+
+    public <T> T getSourceAsObject(Class<T> clazz) {
+        return safeResult().getSourceAsObject(clazz);
+    }
+
     /**
      * Allows elasticSearch and Gson to talk the same language regarding dates (ISO8601 format)
      */
-    public static Gson createGsonWithDateFormat() {
+    static Gson createGsonWithDateFormat() {
         return new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").create();
     }
 
-    public static class Result{
+    JestResult safeResult() {
+        if (result == null) {
+            result = new JestResult(gson);
+            safeResult().setJsonObject(new JsonObject());
+            safeResult().setSucceeded(false);
+        }
+        return result;
+    }
+
+    public static class Result {
         private final String index;
         private final String type;
         private final String id;
@@ -144,35 +185,38 @@ public class JestResultUtils {
             try {
                 this.score = resultLine.has("_score") ? scoreElement.getAsFloat() : 1.0f;
             } catch (Exception e) {
-                this.score=1.0f;
+                this.score = 1.0f;
             }
             this.source = resultLine.get("_source").getAsJsonObject();
         }
-        
-        public String index(){
+
+        public String index() {
             return index;
         }
-        public String type(){
+
+        public String type() {
             return type;
         }
-        public String id(){
+
+        public String id() {
             return id;
         }
-        public Float score(){
+
+        public Float score() {
             return score;
         }
-        
+
         @SuppressWarnings("unchecked")
-        public Map<String, Object> sourceAsMap(){
+        public Map<String, Object> sourceAsMap() {
             return gson.fromJson(source, Map.class);
         }
-        
-        public JsonObject source(){
+
+        public JsonObject source() {
             return source;
         }
 
         @SuppressWarnings("unchecked")
-        public <T extends Index> T getObject(Class<T> clazz){
+        public <T extends Index> T getObject(Class<T> clazz) {
             if (convertedObject == null) {
                 // Get Data Map
                 Map<String, Object> map = sourceAsMap();
@@ -182,7 +226,7 @@ public class JestResultUtils {
                 t.id = id();
                 convertedObject = t;
             }
-            return (T)convertedObject;
+            return (T) convertedObject;
         }
 
         @Override

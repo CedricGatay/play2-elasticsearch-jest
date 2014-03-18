@@ -15,11 +15,11 @@ public abstract class JestRequest<T extends Action> {
     public abstract T getAction();
     
     @Nullable
-    public JestResult execute(){
+    public JestRichResult execute(){
         return JestClientWrapper.execute(this);
     }
 
-    public F.Promise<JestResult> executeAsync(){
+    public F.Promise<JestRichResult> executeAsync(){
         return F.Promise.wrap(AsyncUtils.executeAsync(IndexClient.client, getAction()));
     }
 }

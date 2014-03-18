@@ -1,5 +1,5 @@
 import com.github.cleverage.elasticsearch.*;
-import com.github.cleverage.elasticsearch.jest.JestResultUtils;
+import com.github.cleverage.elasticsearch.jest.JestRichResult;
 import indextype.Index1Type1;
 import indextype.Index2Type1;
 import io.searchbox.client.JestResult;
@@ -65,10 +65,10 @@ public class ElasticsearchTestJava {
 
 
                 // indexing
-                JestResult index = type1.index();
+                JestRichResult index = type1.index();
 
                 // Read
-                final String id = new JestResultUtils(index).getId();
+                final String id = index.getId();
                 Index1Type1 typeResult = Index1Type1.find.byId(id);
 
                 assertThat(typeResult).isNotNull();
@@ -100,10 +100,10 @@ public class ElasticsearchTestJava {
                 type1.dateCreate = date;
 
                 // indexing
-                JestResult index = type1.index();
+                JestRichResult index = type1.index();
 
                 // Read
-                final String id = new JestResultUtils(index).getId();
+                final String id = index.getId();
                 Index2Type1 typeResult = Index2Type1.find.byId(id);
 
                 assertThat(typeResult).isNotNull();
@@ -122,11 +122,11 @@ public class ElasticsearchTestJava {
             public void run() {
                 Index1Type1 index1Type1 = new Index1Type1("1", "name1", "category", createDate());
                 Index1Type1 index1Type1Bis = new Index1Type1("2", "name2", "category", createDate());
-                F.Promise<JestResult> promise1 = index1Type1.indexAsync();
-                F.Promise<JestResult> promise2 = index1Type1Bis.indexAsync();
+                F.Promise<JestRichResult> promise1 = index1Type1.indexAsync();
+                F.Promise<JestRichResult> promise2 = index1Type1Bis.indexAsync();
 
-                F.Promise<List<JestResult>> promise = F.Promise.sequence(promise1, promise2);
-                List<JestResult> indexResponses = promise.get(10L, TimeUnit.SECONDS);
+                F.Promise<List<JestRichResult>> promise = F.Promise.sequence(promise1, promise2);
+                List<JestRichResult> indexResponses = promise.get(10L, TimeUnit.SECONDS);
                 assertThat(indexResponses.size()).isEqualTo(2);
             }
         });
@@ -141,12 +141,12 @@ public class ElasticsearchTestJava {
                 Index1Type1 index1Type1Bis = new Index1Type1("2", "name2", "category", createDate());
                 Index1Type1 index1Type1Ter = new Index1Type1("3", "name3", "category", createDate());
 
-                F.Promise<JestResult> promise = IndexService.indexBulkAsync(
+                F.Promise<JestRichResult> promise = IndexService.indexBulkAsync(
                         index1Type1.getIndexPath(),
                         Arrays.asList(index1Type1, index1Type1Bis, index1Type1Ter)
                 );
 
-                JestResult response = promise.get(10L, TimeUnit.SECONDS);
+                JestRichResult response = promise.get(10L, TimeUnit.SECONDS);
                 assertThat(response.getJsonObject().get("items").getAsJsonArray().size()).isEqualTo(3);
             }
         });
@@ -162,12 +162,12 @@ public class ElasticsearchTestJava {
                 Index1Type1 index1Type1Ter = new Index1Type1("3", "name3", "category", createDate());
                 IndexService.indexBulk(index1Type1.getIndexPath(), Arrays.asList(index1Type1, index1Type1Bis, index1Type1Ter));
 
-                F.Promise<JestResult> promise1 = index1Type1.deleteAsync();
-                F.Promise<JestResult> promise2 = index1Type1Bis.deleteAsync();
-                F.Promise<JestResult> promise3 = index1Type1Ter.deleteAsync();
+                F.Promise<JestRichResult> promise1 = index1Type1.deleteAsync();
+                F.Promise<JestRichResult> promise2 = index1Type1Bis.deleteAsync();
+                F.Promise<JestRichResult> promise3 = index1Type1Ter.deleteAsync();
 
-                F.Promise<List<JestResult>> promise = F.Promise.sequence(promise1, promise2, promise3);
-                List<JestResult> deleteResponses = promise.get(10L, TimeUnit.SECONDS);
+                F.Promise<List<JestRichResult>> promise = F.Promise.sequence(promise1, promise2, promise3);
+                List<JestRichResult> deleteResponses = promise.get(10L, TimeUnit.SECONDS);
 
                 assertThat(deleteResponses.size()).isEqualTo(3);
             }
@@ -243,7 +243,7 @@ public class ElasticsearchTestJava {
 
                 // Async
                 fieldNewValues.put("name","new-name-async");
-                F.Promise<JestResult> updateResponsePromise = index1Type1.updateAsync(fieldNewValues, updateScript);
+                F.Promise<JestRichResult> updateResponsePromise = index1Type1.updateAsync(fieldNewValues, updateScript);
                 updateResponsePromise.get(2L, TimeUnit.SECONDS);
 
                 index1Type11 = Index1Type1.find.byId("1");

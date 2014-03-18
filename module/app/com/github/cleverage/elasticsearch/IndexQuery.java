@@ -1,6 +1,6 @@
 package com.github.cleverage.elasticsearch;
 
-import com.github.cleverage.elasticsearch.jest.JestResultUtils;
+import com.github.cleverage.elasticsearch.jest.JestRichResult;
 import com.github.cleverage.elasticsearch.jest.JestSearchRequestBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -19,6 +19,7 @@ import play.Logger;
 import play.libs.F;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -181,10 +182,10 @@ public class IndexQuery<T extends Index> {
      * @return
      */
     public F.Promise<IndexResults<T>> fetchAsync(final IndexQueryPath indexQueryPath, final FilterBuilder filter) {
-        final F.Promise<JestResult> jestResultPromise = getSearchRequestBuilder(indexQueryPath, filter).executeAsync();
-        return jestResultPromise.map(new F.Function<JestResult, IndexResults<T>>() {
+        final F.Promise<JestRichResult> jestResultPromise = getSearchRequestBuilder(indexQueryPath, filter).executeAsync();
+        return jestResultPromise.map(new F.Function<JestRichResult, IndexResults<T>>() {
             @Override
-            public IndexResults<T> apply(JestResult jestResult) throws Throwable {
+            public IndexResults<T> apply(JestRichResult jestResult) throws Throwable {
                 return toSearchResults(jestResult);
             }
         });
@@ -192,7 +193,7 @@ public class IndexQuery<T extends Index> {
 
     public IndexResults<T> executeSearchRequest(JestSearchRequestBuilder request) {
 
-        JestResult searchResponse = request.execute();
+        JestRichResult searchResponse = request.execute();
 
         if (IndexClient.config.showRequest && searchResponse != null) {
             Logger.debug("ElasticSearch : Response -> " + searchResponse.getJsonString());
@@ -263,20 +264,15 @@ public class IndexQuery<T extends Index> {
         return request;
     }
 
-    private IndexResults<T> toSearchResults(@Nullable JestResult searchResponse) {
-        long count = 0;
-        List<Facet> facetsResponse = Lists.newArrayList();
+    private IndexResults<T> toSearchResults(@NotNull JestRichResult jestRichResult) {
         List<T> results = Lists.newArrayList();
-        if (searchResponse != null) {
-            final JestResultUtils jestResultUtils = new JestResultUtils(searchResponse);
-            count = jestResultUtils.getTotalHits();
-            facetsResponse = jestResultUtils.getFacets();
-            for (JestResultUtils.Result h : jestResultUtils.getHits()) {
-                results.add(h.getObject(clazz));
-            }
-            if (Logger.isDebugEnabled()) {
-                Logger.debug("ElasticSearch : Results -> " + Joiner.on(",").join(results));
-            }
+        long count = jestRichResult.getTotalHits();
+        List<Facet> facetsResponse = jestRichResult.getFacets();
+        for (JestRichResult.Result h : jestRichResult.getHits()) {
+            results.add(h.getObject(clazz));
+        }
+        if (Logger.isDebugEnabled()) {
+            Logger.debug("ElasticSearch : Results -> " + Joiner.on(",").join(results));
         }
         long pageSize = 10;
         if (size > -1) {

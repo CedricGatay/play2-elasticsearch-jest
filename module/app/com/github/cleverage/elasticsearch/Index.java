@@ -1,6 +1,7 @@
 package com.github.cleverage.elasticsearch;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.github.cleverage.elasticsearch.jest.JestRichResult;
 import io.searchbox.annotations.JestId;
 import io.searchbox.client.JestResult;
 import org.elasticsearch.ElasticSearchException;
@@ -13,6 +14,8 @@ import com.github.cleverage.elasticsearch.annotations.IndexName;
 import com.github.cleverage.elasticsearch.annotations.IndexType;
 
 import java.util.Map;
+
+import static com.github.cleverage.elasticsearch.IndexService.*;
 
 @JsonIgnoreProperties({"searchHit"})
 public abstract class Index implements Indexable {
@@ -38,7 +41,7 @@ public abstract class Index implements Indexable {
         }
         String indexType = indexTypeAnnotation.name();
 
-        String indexName = IndexService.INDEX_DEFAULT;
+        String indexName = INDEX_DEFAULT;
         IndexName indexNameAnnotation = this.getClass().getAnnotation(IndexName.class);
         if(indexNameAnnotation != null) {
             indexName = indexNameAnnotation.name();
@@ -63,7 +66,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public JestResult index() {
+    public JestRichResult index() {
         return IndexService.index(getIndexPath(), id, this);
     }
 
@@ -72,7 +75,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public JestResult index(String indexName) {
+    public JestRichResult index(String indexName) {
         return IndexService.index(getIndexPath(indexName), id, this);
     }
 
@@ -81,7 +84,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<JestResult> indexAsync() {
+    public F.Promise<JestRichResult> indexAsync() {
         return IndexService.indexAsync(getIndexPath(), id, this);
     }
 
@@ -90,23 +93,23 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<JestResult> indexAsync(String indexName) {
+    public F.Promise<JestRichResult> indexAsync(String indexName) {
         return IndexService.indexAsync(getIndexPath(indexName), id, this);
     }
 
-    public JestResult update(Map<String, Object> updateFieldValues, String updateScript){
+    public JestRichResult update(Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.update(getIndexPath(), id, updateFieldValues, updateScript);
     }
 
-    public JestResult update(String indexName, Map<String, Object> updateFieldValues, String updateScript){
+    public JestRichResult update(String indexName, Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.update(getIndexPath(indexName), id, updateFieldValues, updateScript);
     }
 
-    public F.Promise<JestResult> updateAsync(Map<String, Object> updateFieldValues, String updateScript){
+    public F.Promise<JestRichResult> updateAsync(Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.updateAsync(getIndexPath(), id, updateFieldValues, updateScript);
     }
 
-    public F.Promise<JestResult> updateAsync(String indexName, Map<String, Object> updateFieldValues, String updateScript){
+    public F.Promise<JestRichResult> updateAsync(String indexName, Map<String, Object> updateFieldValues, String updateScript){
         return IndexService.updateAsync(getIndexPath(indexName), id, updateFieldValues, updateScript);
     }
 
@@ -115,7 +118,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public JestResult delete() {
+    public JestRichResult delete() {
         return IndexService.delete(getIndexPath(), id);
     }
 
@@ -124,7 +127,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public JestResult delete(String indexName) {
+    public JestRichResult delete(String indexName) {
         return IndexService.delete(getIndexPath(indexName), id);
     }
 
@@ -133,7 +136,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<JestResult> deleteAsync() {
+    public F.Promise<JestRichResult> deleteAsync() {
         return IndexService.deleteAsync(getIndexPath(), id);
     }
 
@@ -142,7 +145,7 @@ public abstract class Index implements Indexable {
      * @return
      * @throws Exception
      */
-    public F.Promise<JestResult> deleteAsync(String indexName) {
+    public F.Promise<JestRichResult> deleteAsync(String indexName) {
         return IndexService.deleteAsync(getIndexPath(indexName), id);
     }
 
@@ -188,7 +191,7 @@ public abstract class Index implements Indexable {
          * @return
          */
         public T byId(String id) {
-            return IndexService.get(queryPath, type, id);
+            return get(queryPath, type, id);
         }
 
         /**
