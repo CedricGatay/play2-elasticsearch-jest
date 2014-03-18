@@ -174,10 +174,12 @@ public class JestRichResult {
         private final String type;
         private final String id;
         private Float score;
+        private final JsonObject result;
         private final JsonObject source;
         private transient Index convertedObject = null;
 
         public Result(JsonObject resultLine) {
+            this.result = resultLine;
             this.index = resultLine.get("_index").getAsString();
             this.type = resultLine.get("_type").getAsString();
             this.id = resultLine.get("_id").getAsString();
@@ -187,7 +189,7 @@ public class JestRichResult {
             } catch (Exception e) {
                 this.score = 1.0f;
             }
-            this.source = resultLine.get("_source").getAsJsonObject();
+            this.source = resultLine.has("_source") ? resultLine.get("_source").getAsJsonObject() : null;
         }
 
         public String index() {
@@ -204,6 +206,10 @@ public class JestRichResult {
 
         public Float score() {
             return score;
+        }
+
+        public JsonObject result() {
+            return result;
         }
 
         @SuppressWarnings("unchecked")

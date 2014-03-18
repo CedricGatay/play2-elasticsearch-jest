@@ -5,7 +5,7 @@ import xerial.sbt.Sonatype._
 
 name := "play2-elasticsearch-jest"
 
-version := "0.1.0"
+version := "0.1.1"
 
 libraryDependencies ++= Seq(
   javaCore,
@@ -20,6 +20,8 @@ play.Project.playJavaSettings
 sonatypeSettings
 
 organization := "com.code-troopers.play"
+
+publishMavenStyle := true
 
 licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
 

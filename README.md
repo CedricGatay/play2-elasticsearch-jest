@@ -7,6 +7,8 @@ This module relies on [Jest](https://github.com/searchbox-io/Jest) integration t
 
 While classes can look similar to the one in the original plugin, a lot of method signatures have changed due to the use of another querying library. So it is **not** a simple drop-in replacement !
 
+**Warning This plugin needs to be considered as an alpha and should not be used in production without an extensive testing phase !** 
+
 ## Reason for this
 We needed a way to use ElasticSearch on different machines / network than the one we are running our applications on. So the only way of doing this "securely" is to use REST with authentication which is handled by Jest library.
 
@@ -18,13 +20,15 @@ As the library now uses HTTP transport, expect it to be slower than its counterp
 Everything has been relocated to the base package com.codetroopers.play.elasticsearch
 
 ## Versions
-** 0.1.0 ** [2014-03-18] : Initial release
+**0.1.1** [2014-03-18] : Added result field in `JestRichResult#Result`
+
+**0.1.0** [2014-03-18] : Initial release
 
 ## Install
 
 The dependency declaration is :
 ```
-"com.code-troopers.play" % "play2-elasticsearch-jest" % "0.1.0"
+"com.code-troopers.play" %% "play2-elasticsearch-jest" % "0.1.1"
 ```
 
 Releases are published on maven-central, so you don't have to define any specific resolvers.

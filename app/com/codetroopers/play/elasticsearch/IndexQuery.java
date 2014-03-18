@@ -212,10 +212,12 @@ public class IndexQuery<T extends Index> {
     public JestSearchRequestBuilder getSearchRequestBuilder(@Nullable IndexQueryPath indexQueryPath, FilterBuilder filter) {
 
         // Build request
-        JestSearchRequestBuilder request = new JestSearchRequestBuilder()
-                .setIndices(indexQueryPath.index)
-                .setTypes(indexQueryPath.type)
-                .setSearchType(io.searchbox.params.SearchType.QUERY_THEN_FETCH)
+        JestSearchRequestBuilder request = new JestSearchRequestBuilder();
+        if (indexQueryPath != null) {
+            request.setIndices(indexQueryPath.index)
+                    .setTypes(indexQueryPath.type);
+        }
+        request.setSearchType(io.searchbox.params.SearchType.QUERY_THEN_FETCH)
                 .setFilter(filter);
 
         // set Query
