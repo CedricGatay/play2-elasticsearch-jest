@@ -4,6 +4,7 @@ package com.codetroopers.play.elasticsearch.jest;
 import com.codetroopers.play.elasticsearch.AsyncUtils;
 import com.codetroopers.play.elasticsearch.IndexClient;
 import com.codetroopers.play.elasticsearch.IndexConfig;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import io.searchbox.Action;
 import io.searchbox.client.JestClient;
@@ -35,9 +36,14 @@ public class JestClientWrapper {
                 }
             }
         }
+        return buildJestClient(connectionUrls);
+    }
+
+    @VisibleForTesting
+    static JestClient buildJestClient(List<String> connectionUrls) {
         final Builder builder = new Builder(connectionUrls)
                 .multiThreaded(true);
-        
+
         builder.gson(JestRichResult.createGsonWithDateFormat());
         HttpClientConfig clientConfig = builder.build();
 

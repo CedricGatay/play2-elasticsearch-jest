@@ -18,4 +18,5 @@ public class IndexUtilsTest {
         UUID conversionResult= (UUID) IndexUtils.convertValue(uuidString, UUID.class);
         assertEquals(uuid, conversionResult);
     }
+
 }
